@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아보카도 - 음성 변환 서비스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        :root {
+            --brand-yellow-light: #FFFBEB;
+            --brand-green-dark: #166534;
+            --brand-green-light: #36d654;
+            --brand-green-hover: #15803d;
+            --text-dark: #374151;
+            --text-light: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-yellow-light);
+            color: var(--text-dark);
+            scroll-behavior: smooth;
+        }
+        .section { min-height: 100vh; }
+        .section-1 { height: 100vh; position: relative; }
+        .container { max-width: 1024px; margin: auto; }
+        
+        .icon { width: 35.28px; height: 35.28px; object-fit: contain; }
+        @media (min-width: 768px) { .icon { width: 52.92px; height: 52.92px; } }
+        
+        .gradient-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 200px;
+            background: linear-gradient(to top, var(--brand-yellow-light), rgba(255, 251, 235, 0));
+        }
+
+        @keyframes slideInFromBottom {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .main-icon { animation: slideInFromBottom 1s ease-out; }
+
+        #login-section, #signup-section, #main-app-section, #message-box, #loading-overlay, #email-modal, #mypage-section {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 251, 235, 0.9); z-index: 100;
+        }
+        #loading-overlay { background-color: rgba(255, 251, 235, 0.8); z-index: 110; }
+
+        .form-box, .app-box {
+            position: relative; margin: auto; background-color: white;
+            border-radius: 1.5rem; border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem 3rem; width: 100%; max-width: 28rem; text-align: center;
+        }
+        .app-box { max-width: 42rem; padding: 2rem; }
+
+        .message-box-content {
+            background-color: white; padding: 2rem; border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 90%; max-width: 400px; text-align: center;
+        }
+        
+        #share-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 105;
+        }
+        .share-option { @apply p-4 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer; }
+        .instagram-gradient {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .password-container { position: relative; }
+        .toggle-password {
+            position: absolute; right: 1rem; top: 50%;
+            transform: translateY(-50%); cursor: pointer; color: #d1d5db;
+        }
+        
+        .tab-button {
+            @apply flex items-center whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-lg transition-colors duration-200 ease-in-out;
+        }
+        .tab-button:not(.active) {
+            @apply border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700;
+        }
+        .tab-button.active {
+            @apply border-[var(--brand-green-dark)] text-[var(--text-dark)];
+        }
+        
+        .loader {
+            border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid var(--brand-green-dark);
+            width: 60px; height: 60px; animation: spin 2s linear infinite;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        
+        .voice-icon-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+            flex-shrink: 0;
+        }
+
+        .audio-control-btn {
+            @apply w-12 h-12 rounded-full bg-white text-[var(--brand-green-dark)] flex items-center justify-center shadow-md transition-colors hover:bg-gray-100 flex-shrink-0 text-xl;
+        }
+        #progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 16px; height: 16px;
+            background: var(--brand-green-dark);
+            cursor: pointer; border-radius: 50%;
+        }
+        #progress-bar::-moz-range-thumb {
+            width: 16px; height: 16px;
+            background: var(--brand-green-dark);
+            cursor: pointer; border-radius: 50%;
+        }
+
+        .mypage-menu-item {
+            @apply flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+    <!-- Main Section -->
+    <div class="section section-1 flex items-center justify-center text-center p-4 bg-gradient-to-br from-yellow-100 to-green-100" id="main-section">
+        <div class="absolute top-8 left-8 flex items-center space-x-2 bg-white rounded-full shadow-lg px-4 py-2 z-10">
+            <img src="https://i.postimg.cc/d1W6XT4w/x.png" alt="아보카도 로고" class="icon" onerror="this.onerror=null;this.src='https://placehold.co/52x52/A0D9B4/FFFFFF?text=A';">
+            <span class="text-2xl font-extrabold text-[#113953]">AVOCADO</span>
+        </div>
+        <div class="flex flex-col items-center">
+            <img src="https://i.postimg.cc/43QB60cK/image.png" alt="아보카도 메인 아이콘" class="mb-4 w-40 h-40 object-contain main-icon" onerror="this.onerror=null;this.src='https://placehold.co/160x160/A0D9B4/FFFFFF?text=AVOCADO';">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#3E2723] mb-4 transition-transform duration-500 hover:scale-105">
+                아보카도
+            </h1>
+            <p class="text-xl md:text-2xl font-semibold text-gray-600">
+                Ai Voice Commnication Development Tool
+            </p>
+            <div class="flex space-x-4 mt-8 z-20">
+                <a id="scrollButton" href="#intro-section" class="bg-[var(--brand-green-dark)] text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 hover:bg-[var(--brand-green-hover)] hover:shadow-xl">
+                    소개 보기
+                </a>
+                <a id="startButton" href="#" class="group bg-white text-[var(--brand-green-dark)] font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 hover:bg-gray-100 hover:shadow-xl flex items-center justify-center">
+                    <span>시작하기</span>
+                    <i class="fa-solid fa-arrow-right w-0 opacity-0 group-hover:w-5 group-hover:opacity-100 group-hover:ml-2 transition-all duration-300 ease-in-out"></i>
+                </a>
+            </div>
+        </div>
+        <div class="gradient-overlay"></div>
+    </div>
+
+    <!-- Intro Section -->
+    <div class="section py-20 px-6" id="intro-section">
+        <div class="container space-y-20">
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 transition-transform duration-500 hover:scale-105">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-seedling text-3xl text-[var(--brand-green-light)] mr-4"></i>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[var(--brand-green-dark)]">프로젝트 개요</h2>
+                </div>
+                <p class="text-lg md:text-xl text-gray-700 leading-relaxed pl-11">
+                    아보카도는 발화에 어려움을 겪는 사용자를 위해 AI 기반 텍스트-음성 변환(TTS) 및 커스텀 음성 모델 생성 서비스를 제공합니다. 사용자가 입력한 텍스트를 다양한 AI 음성 모델로 변환하거나, 자신의 목소리를 기반으로 개인화된 음성 모델을 제작하여 자연스러운 소통을 가능하게 돕는 것을 목표로 합니다.
+                </p>
+            </div>
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 transition-transform duration-300 hover:translate-y-[-8px] hover:shadow-md">
+                 <div class="flex items-center mb-4">
+                    <i class="fas fa-comment-dots text-3xl text-[var(--brand-green-light)] mr-4"></i>
+                    <h3 class="text-2xl font-semibold text-[var(--brand-green-dark)]">텍스트-음성 변환 (TTS)</h3>
+                </div>
+                <p class="text-gray-600 pl-11">
+                    텍스트를 입력하면 AI 음성으로 변환해 드립니다. 다양한 기본 음성 모델 중에서 선택할 수 있으며, 변환된 음성은 바로 재생, 다운로드 또는 공유할 수 있습니다.
+                </p>
+            </div>
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 transition-transform duration-300 hover:translate-y-[-8px] hover:shadow-md">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-microphone-alt text-3xl text-[var(--brand-green-light)] mr-4"></i>
+                    <h3 class="text-2xl font-semibold text-[var(--brand-green-dark)]">커스텀 음성 모델 제작</h3>
+                </div>
+                <p class="text-gray-600 pl-11">
+                    사용자가 직접 녹음한 음성을 기반으로 세상에 하나뿐인 '나만의 목소리' 모델을 만들 수 있습니다. 발음이 다소 불분명해도 음색과 톤을 학습하여 개인화된 목소리를 생성합니다.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Login Section -->
+    <div id="login-section" class="flex items-center justify-center p-4">
+        <div class="form-box">
+            <a href="#" class="absolute top-4 left-4 text-3xl text-gray-400 hover:text-gray-600 transition-colors duration-200" id="login-back-button">&#x2190;</a>
+            <h2 class="text-3xl font-bold mb-6 text-[var(--brand-green-dark)]">로그인</h2>
+            <form class="space-y-4" id="login-form">
+                <input type="email" id="login-email" placeholder="이메일 주소" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)] transition-all duration-200" required>
+                <div class="password-container">
+                    <input type="password" id="login-password" placeholder="비밀번호" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)] transition-all duration-200" required>
+                    <span class="toggle-password" onclick="togglePasswordVisibility('login-password')"><i class="fa-solid fa-eye"></i></span>
+                </div>
+                <button type="submit" class="w-full bg-[var(--brand-green-dark)] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[var(--brand-green-hover)] transition-colors duration-300">로그인</button>
+            </form>
+            <p class="mt-4 text-sm text-gray-500">계정이 없으신가요? <a href="#" class="text-[var(--brand-green-dark)] hover:underline font-semibold" id="to-signup-button">회원가입</a></p>
+        </div>
+    </div>
+
+    <!-- Sign-up Section -->
+    <div id="signup-section" class="flex items-center justify-center p-4">
+        <div class="form-box overflow-y-auto max-h-[90vh]">
+            <a href="#" class="absolute top-4 left-4 text-3xl text-gray-400 hover:text-gray-600 transition-colors duration-200" id="signup-back-button">&#x2190;</a>
+            <h2 class="text-3xl font-bold mb-6 text-[var(--brand-green-dark)]">회원가입</h2>
+            <form class="space-y-4" id="signup-form" novalidate>
+                <input type="text" id="signup-name" placeholder="이름" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)] transition-all duration-200" required>
+                <input type="email" id="signup-email" placeholder="이메일 주소" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)] transition-all duration-200" required>
+                <div class="password-container">
+                    <input type="password" id="signup-password" placeholder="비밀번호" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)] transition-all duration-200" required>
+                    <span class="toggle-password" onclick="togglePasswordVisibility('signup-password')"><i class="fa-solid fa-eye"></i></span>
+                </div>
+                <p id="password-validation-error" class="text-xs text-red-600 mt-1">영문, 숫자, 특수문자를 포함한 10자리 이상</p>
+                <div class="password-container">
+                    <input type="password" id="signup-password-confirm" placeholder="비밀번호 확인" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)] transition-all duration-200" required>
+                    <span class="toggle-password" onclick="togglePasswordVisibility('signup-password-confirm')"><i class="fa-solid fa-eye"></i></span>
+                </div>
+                <p id="password-match-error" class="text-xs text-red-600 mt-1 hidden">비밀번호가 일치하지 않습니다.</p>
+                <div class="text-left pt-2">
+                    <label class="text-gray-600 font-semibold">생년월일</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="number" id="signup-year" placeholder="YYYY" class="w-1/3 px-4 py-3 rounded-xl border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]" required>
+                        <input type="number" id="signup-month" placeholder="MM" class="w-1/3 px-4 py-3 rounded-xl border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]" required>
+                        <input type="number" id="signup-day" placeholder="DD" class="w-1/3 px-4 py-3 rounded-xl border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]" required>
+                    </div>
+                    <input type="hidden" id="calculated-age">
+                </div>
+                <div class="flex flex-col items-start space-y-2">
+                    <label class="text-gray-600 font-semibold">성별</label>
+                    <div class="flex space-x-4">
+                        <label class="inline-flex items-center"><input type="radio" name="gender" value="male" class="form-radio text-[var(--brand-green-dark)] focus:ring-[var(--brand-green-light)]" required><span class="ml-2 text-gray-700">남성</span></label>
+                        <label class="inline-flex items-center"><input type="radio" name="gender" value="female" class="form-radio text-[var(--brand-green-dark)] focus:ring-[var(--brand-green-light)]"><span class="ml-2 text-gray-700">여성</span></label>
+                    </div>
+                </div>
+                <button type="submit" id="signup-button" class="w-full bg-[var(--brand-green-dark)] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[var(--brand-green-hover)] transition-colors duration-300 !mt-6">회원가입</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Main App Section -->
+    <div id="main-app-section" class="flex items-center justify-center p-4">
+        <div class="app-box">
+            <div class="flex justify-between items-center w-full mb-6">
+                <a href="#" class="text-3xl text-gray-400 hover:text-gray-600 transition-colors duration-200" id="app-back-button">&#x2190;</a>
+                <div class="flex items-center space-x-4">
+                    <a href="#" id="mypage-button" class="flex items-center space-x-2">
+                        <img id="header-profile-image" src="https://i.postimg.cc/tyhHrhkC/image.png" alt="프로필 사진" class="w-8 h-8 rounded-full object-cover">
+                        <span class="text-sm text-gray-500 hover:underline">마이페이지</span>
+                    </a>
+                    <a href="#" class="text-sm text-gray-500 hover:underline" id="logout-button-from-app">로그아웃</a>
+                </div>
+            </div>
+            <div class="border-b border-gray-200">
+                <div class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button id="tts-tab" class="tab-button active">
+                        <i class="fas fa-comment-dots mr-2"></i>
+                        <span>TTS</span>
+                    </button>
+                    <button id="my-voice-tab" class="tab-button">
+                        <i class="fas fa-microphone-alt mr-2"></i>
+                        <span>내 목소리 모델</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- TTS Content Section -->
+            <div id="tts-content" class="w-full pt-6">
+                <form class="space-y-4 text-left" id="tts-form">
+                    <div class="flex flex-col space-y-2">
+                        <label for="tts-text" class="text-lg font-semibold text-gray-700">변환할 텍스트</label>
+                        <textarea id="tts-text" rows="6" placeholder="여기에 변환할 텍스트를 입력하세요..." class="w-full p-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)] transition-all duration-200" required></textarea>
+                    </div>
+                    <div class="flex flex-col space-y-3">
+                        <label for="voice-select" class="text-lg font-semibold text-gray-700">음성 모델 선택</label>
+                        <div class="relative" id="custom-select-container">
+                            <div id="custom-select-trigger" class="w-full px-4 py-2 rounded-xl border border-gray-300 bg-white cursor-pointer flex items-center justify-between">
+                                <!-- Selected option will be populated here by JS -->
+                            </div>
+                            <div id="custom-select-options" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg hidden">
+                                <!-- Options will be populated here by JS -->
+                            </div>
+                        </div>
+                        <input type="hidden" id="selected-voice" value="">
+                    </div>
+                    <button type="submit" id="convert-button" class="w-full bg-[var(--brand-green-dark)] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[var(--brand-green-hover)] transition-colors duration-300 !pt-4">
+                        <i class="fas fa-magic-wand-sparkles mr-2"></i> 음성으로 변환하기
+                    </button>
+                </form>
+                <div id="tts-result" class="mt-8 p-6 bg-gray-50 rounded-xl hidden">
+                    <p class="text-lg font-semibold text-gray-700 mb-4">변환 결과</p>
+                    <div class="flex items-center justify-between gap-4">
+                        <div id="custom-audio-player" class="flex items-center gap-3 w-full">
+                            <button id="play-pause-btn" class="audio-control-btn">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                            <span id="current-time" class="text-sm text-gray-500 font-mono">00:00</span>
+                            <input type="range" id="progress-bar" value="0" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                             <span id="total-time" class="text-sm text-gray-500 font-mono">00:00</span>
+                        </div>
+                        <audio id="tts-audio" class="hidden"></audio>
+                        <div id="download-container" class="relative" style="display:none;">
+                            <button id="download-toggle-button" class="audio-control-btn">
+                                <i class="fa-solid fa-download"></i>
+                            </button>
+                            <div id="download-options" class="hidden absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-lg border w-40 z-20">
+                                <a id="download-wav" href="#" download="avocado_tts.wav" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">WAV 형식</a>
+                                <a id="download-mp3" href="#" download="avocado_tts.mp3" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">MP3 형식</a>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="share-button" class="mt-4 w-full bg-[var(--brand-green-dark)] text-white font-bold py-2 rounded-xl shadow-lg hover:bg-[var(--brand-green-hover)] transition-colors duration-300 hidden">
+                        <i class="fa-solid fa-share-alt mr-2"></i> 공유하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- My Voice Content Section -->
+            <div id="my-voice-content" class="w-full pt-6 hidden">
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    당신만의 AI 음성 모델을 만들어보세요. 아래 버튼을 눌러 제시되는 문장들을 녹음하면, 당신의 음색과 어조를 학습하여 세상에 하나뿐인 목소리를 생성해 드립니다.
+                </p>
+                <button id="start-recording-button" class="w-full bg-[var(--brand-green-dark)] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[var(--brand-green-hover)] transition-colors duration-300">
+                    <i class="fa-solid fa-microphone-lines mr-2"></i> 녹음 시작하기
+                </button>
+                <div id="recording-status" class="mt-6 hidden">
+                    <div class="flex items-center justify-center space-x-2 text-gray-600">
+                        <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        <p>녹음 중입니다...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- My Page Section -->
+    <div id="mypage-section" class="flex items-center justify-center p-4">
+        <div class="form-box !max-w-xl text-left">
+            <a href="#" class="absolute top-4 left-4 text-3xl text-gray-400 hover:text-gray-600" id="mypage-back-button">&#x2190;</a>
+            <h2 class="text-3xl font-bold mb-6 text-[var(--brand-green-dark)] text-center">마이페이지</h2>
+
+            <!-- Profile Picture Section -->
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer group hover:bg-gray-300 transition-colors" id="profile-pic-container">
+                    <img id="profile-image" src="https://placehold.co/128x128/D1D5DB/FFFFFF?text=PROFILE" alt="프로필 사진" class="w-full h-full rounded-full object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center rounded-full bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <i class="fas fa-camera text-white text-3xl"></i>
+                    </div>
+                </div>
+                <input type="file" id="profile-pic-input" accept="image/*" class="hidden">
+            </div>
+            
+            <!-- My Page Main Menu -->
+            <div id="mypage-menu">
+                <p class="text-center text-gray-600 mb-8" id="mypage-greeting"></p>
+                <div class="flex flex-col space-y-4">
+                    <div id="change-info-button" class="mypage-menu-item">
+                        <span class="text-lg font-semibold text-[var(--text-dark)] flex items-center">
+                            <i class="fas fa-user-edit text-[var(--brand-green-dark)] mr-3 text-xl"></i>
+                            내 정보 변경
+                        </span>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                    <div id="history-button" class="mypage-menu-item">
+                        <span class="text-lg font-semibold text-[var(--text-dark)] flex items-center">
+                            <i class="fas fa-history text-[var(--brand-green-dark)] mr-3 text-xl"></i>
+                            변환 기록 확인
+                        </span>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                    <div id="settings-button" class="mypage-menu-item">
+                        <span class="text-lg font-semibold text-[var(--text-dark)] flex items-center">
+                            <i class="fas fa-cog text-[var(--brand-green-dark)] mr-3 text-xl"></i>
+                            환경설정
+                        </span>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Change Info Section -->
+            <div id="change-info-section" class="hidden">
+                <a href="#" class="text-3xl text-gray-400 hover:text-gray-600 mb-4 inline-block" id="change-info-back-button">&#x2190;</a>
+                <h3 class="text-2xl font-bold mb-6 text-[var(--brand-green-dark)] text-center">비밀번호 변경</h3>
+                <form class="space-y-4 text-left" id="password-reset-form">
+                    <!-- Step 1: Email Verification -->
+                    <div id="email-verification-step">
+                        <label for="current-email" class="font-semibold text-gray-700">이메일 확인</label>
+                        <p class="text-sm text-gray-500 mb-2">회원가입 시 사용한 이메일 주소를 입력하고 인증 코드를 받으세요.</p>
+                        <div class="flex items-center gap-2">
+                            <input type="email" id="current-email" placeholder="이메일 주소" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]" required>
+                            <button type="button" id="send-code-button" class="bg-[var(--brand-green-dark)] text-white font-bold py-3 px-4 rounded-xl hover:bg-[var(--brand-green-hover)] transition-colors whitespace-nowrap">인증</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Code & New Password -->
+                    <fieldset id="reset-password-step" class="space-y-4 pt-4" disabled>
+                        <div>
+                            <label for="verification-code" class="font-semibold text-gray-700">인증코드</label>
+                            <input type="text" id="verification-code" placeholder="이메일로 받은 인증코드" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]">
+                        </div>
+                        <div>
+                            <label for="new-password" class="font-semibold text-gray-700">새 비밀번호</label>
+                            <div class="password-container mt-1">
+                                <input type="password" id="new-password" placeholder="새 비밀번호" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]">
+                                <span class="toggle-password" onclick="togglePasswordVisibility('new-password')"><i class="fa-solid fa-eye"></i></span>
+                            </div>
+                            <p id="new-password-validation-error" class="text-xs text-red-600 mt-1">영문, 숫자, 특수문자를 포함한 10자리 이상</p>
+                        </div>
+                        <div>
+                            <label for="new-password-confirm" class="font-semibold text-gray-700">새 비밀번호 확인</label>
+                            <div class="password-container mt-1">
+                                <input type="password" id="new-password-confirm" placeholder="새 비밀번호 확인" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]">
+                                <span class="toggle-password" onclick="togglePasswordVisibility('new-password-confirm')"><i class="fa-solid fa-eye"></i></span>
+                            </div>
+                            <p id="new-password-match-error" class="text-xs text-red-600 mt-1 hidden">비밀번호가 일치하지 않습니다.</p>
+                        </div>
+                    </fieldset>
+        
+                    <button type="submit" id="change-password-button" class="w-full bg-gray-300 text-white font-bold py-3 rounded-xl shadow-lg !mt-6 transition-colors" disabled>
+                        비밀번호 변경
+                    </button>
+                </form>
+            </div>
+
+            <!-- Conversion History Section -->
+            <div id="conversion-history-section" class="hidden">
+                <a href="#" class="text-3xl text-gray-400 hover:text-gray-600 mb-4 inline-block" id="history-back-button">&#x2190;</a>
+                <h3 class="text-2xl font-bold mb-6 text-[var(--brand-green-dark)] text-center">변환 기록 확인</h3>
+                <div class="text-center text-gray-500 p-8 border border-gray-200 rounded-xl">
+                    <i class="fas fa-list-ul text-4xl mb-4 text-[var(--brand-green-light)]"></i>
+                    <p>아직 변환 기록이 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" class="hidden">
+                <a href="#" class="text-3xl text-gray-400 hover:text-gray-600 mb-4 inline-block" id="settings-back-button">&#x2190;</a>
+                <h3 class="text-2xl font-bold mb-6 text-[var(--brand-green-dark)] text-center">환경설정</h3>
+                <div class="text-center text-gray-500 p-8 border border-gray-200 rounded-xl">
+                    <i class="fas fa-cogs text-4xl mb-4 text-[var(--brand-green-light)]"></i>
+                    <p>아직 설정할 항목이 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="message-box" class="flex justify-center items-center p-4">
+        <div class="message-box-content">
+            <p id="message-text" class="text-lg font-semibold text-gray-800 mb-4"></p>
+            <button id="message-ok-button" class="bg-[var(--brand-green-dark)] text-white font-bold py-2 px-6 rounded-full hover:bg-[var(--brand-green-hover)] transition-colors duration-300">확인</button>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="share-modal" class="p-4">
+        <div class="bg-white rounded-xl shadow-xl p-6 text-left w-full max-w-xs sm:max-w-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-[var(--brand-green-dark)]">공유하기</h3>
+                <button id="share-modal-close" class="text-3xl text-gray-400 hover:text-gray-600 leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 mb-6">아래 앱으로 공유하거나 이메일로 파일을 보낼 수 있습니다.</p>
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="share-option" data-platform="instagram">
+                    <i class="fab fa-instagram text-4xl instagram-gradient"></i>
+                    <span class="mt-2 block text-sm font-medium">Instagram</span>
+                </div>
+                <div class="share-option" data-platform="kakao">
+                    <i class="fas fa-comment text-4xl text-[#FEE500]"></i>
+                    <span class="mt-2 block text-sm font-medium">카카오톡</span>
+                </div>
+                 <div class="share-option" data-platform="email">
+                    <i class="fas fa-envelope text-4xl text-gray-500"></i>
+                    <span class="mt-2 block text-sm font-medium">이메일</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Modal -->
+    <div id="email-modal" class="p-4">
+        <div class="bg-white rounded-xl shadow-xl p-6 text-left w-full max-w-md">
+            <h3 class="text-2xl font-bold text-[var(--brand-green-dark)] mb-4">이메일로 보내기</h3>
+            <p class="text-gray-600 mb-6">음성 파일을 받을 이메일 주소를 입력하세요.</p>
+            <form id="email-modal-form">
+                <input type="email" id="email-modal-input" placeholder="이메일 주소" class="w-full px-4 py-3 mb-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]" required>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="email-modal-cancel" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-full hover:bg-gray-300">취소</button>
+                    <button type="submit" class="bg-[var(--brand-green-dark)] text-white font-bold py-2 px-6 rounded-full hover:bg-[var(--brand-green-hover)]">전송</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="flex justify-center items-center">
+        <div class="loader"></div>
+    </div>
+    
+    <!-- Kakao SDK -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.1/kakao.min.js"
+        xintegrity="sha384-dPuE23cCAMFN/lDCSavobjOaOhbGSfOhKTGN3dbaSchle7wo/wDr/kP1M2rGoRdo" crossorigin="anonymous"></script>
+
+    <script>
+        // --- UI Elements ---
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const allSections = document.querySelectorAll('.section, #login-section, #signup-section, #main-app-section, #mypage-section');
+        const mypageSections = ['mypage-menu', 'change-info-section', 'conversion-history-section', 'settings-section'];
+
+        // --- Event Listeners and App Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Kakao SDK Initialization ---
+            try {
+                if (Kakao) {
+                    Kakao.init('6cbf049eca3cbb41680e6053882d247d'); 
+                }
+            } catch(e) {
+                console.error("Kakao SDK 초기화 오류. 카카오톡 공유가 작동하지 않을 수 있습니다.", e);
+            }
+            
+            showSection('main-section', 'flex');
+            populateVoices();
+
+            const emailModal = document.getElementById('email-modal');
+            const emailModalForm = document.getElementById('email-modal-form');
+            const emailModalInput = document.getElementById('email-modal-input');
+            const emailModalCancel = document.getElementById('email-modal-cancel');
+            
+            const shareModal = document.getElementById('share-modal');
+            const shareModalClose = document.getElementById('share-modal-close');
+            const shareOptions = document.querySelectorAll('.share-option');
+
+            let currentWavBlob = null; 
+
+            // --- Custom Audio Player Logic ---
+            const ttsAudioEl = document.getElementById('tts-audio');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playPauseIcon = playPauseBtn.querySelector('i');
+            const progressBar = document.getElementById('progress-bar');
+            const currentTimeEl = document.getElementById('current-time');
+            const totalTimeEl = document.getElementById('total-time');
+
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            playPauseBtn.addEventListener('click', () => {
+                if (ttsAudioEl.paused) {
+                    ttsAudioEl.play();
+                } else {
+                    ttsAudioEl.pause();
+                }
+            });
+
+            ttsAudioEl.addEventListener('play', () => {
+                playPauseIcon.classList.replace('fa-play', 'fa-pause');
+            });
+
+            ttsAudioEl.addEventListener('pause', () => {
+                playPauseIcon.classList.replace('fa-pause', 'fa-play');
+            });
+            
+            ttsAudioEl.addEventListener('loadedmetadata', () => {
+                totalTimeEl.textContent = formatTime(ttsAudioEl.duration);
+                progressBar.max = ttsAudioEl.duration;
+            });
+
+            ttsAudioEl.addEventListener('timeupdate', () => {
+                progressBar.value = ttsAudioEl.currentTime;
+                currentTimeEl.textContent = formatTime(ttsAudioEl.currentTime);
+            });
+            
+             ttsAudioEl.addEventListener('ended', () => {
+                progressBar.value = 0;
+                currentTimeEl.textContent = formatTime(0);
+                playPauseIcon.classList.replace('fa-pause', 'fa-play');
+            });
+
+            progressBar.addEventListener('input', () => {
+                ttsAudioEl.currentTime = progressBar.value;
+            });
+
+            // --- Download Logic ---
+            const downloadContainer = document.getElementById('download-container');
+            const downloadToggleButton = document.getElementById('download-toggle-button');
+            const downloadOptions = document.getElementById('download-options');
+            const downloadWav = document.getElementById('download-wav');
+            const downloadMp3 = document.getElementById('download-mp3');
+
+            downloadToggleButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                downloadOptions.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!downloadContainer.contains(e.target)) {
+                    downloadOptions.classList.add('hidden');
+                }
+            });
+            
+            [downloadWav, downloadMp3].forEach(link => {
+                link.addEventListener('click', () => {
+                    downloadOptions.classList.add('hidden');
+                });
+            });
+
+
+            // --- UI Control Functions ---
+            function showLoading() { loadingOverlay.style.display = 'flex'; }
+            function hideLoading() { loadingOverlay.style.display = 'none'; }
+            function showMessage(message) {
+                document.getElementById('message-text').textContent = message;
+                document.getElementById('message-box').style.display = 'flex';
+            }
+            function hideMessage() { document.getElementById('message-box').style.display = 'none'; }
+            
+            function showSection(id, displayStyle = 'block') {
+                allSections.forEach(el => el.style.display = 'none');
+                const section = document.getElementById(id);
+                if (section) section.style.display = displayStyle;
+                if (id === 'main-section') {
+                    document.getElementById('intro-section').style.display = 'block';
+                }
+            }
+
+            function showMypageSubSection(id) {
+                mypageSections.forEach(subId => document.getElementById(subId).classList.add('hidden'));
+                document.getElementById(id).classList.remove('hidden');
+            }
+            
+            function showTab(tabId) {
+                ['tts-content', 'my-voice-content'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                document.getElementById(tabId).classList.remove('hidden');
+
+                ['tts-tab', 'my-voice-tab'].forEach(id => document.getElementById(id).classList.remove('active'));
+                const activeTabButtonId = tabId.replace('-content', '-tab');
+                document.getElementById(activeTabButtonId).classList.add('active');
+            }
+
+            window.togglePasswordVisibility = function(id) {
+                const passwordInput = document.getElementById(id);
+                const toggleIcon = passwordInput.nextElementSibling.querySelector('i');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            }
+
+            function populateVoices() {
+                const voices = [
+                    { id: 'conan', icon: 'fa-user-secret', name: '코난' },
+                    { id: 'jjanggu', icon: 'fa-child', name: '짱구' },
+                    { id: 'keroro', icon: 'fa-frog', name: '케로로' },
+                ];
+                
+                const container = document.getElementById('custom-select-container');
+                const trigger = document.getElementById('custom-select-trigger');
+                const optionsContainer = document.getElementById('custom-select-options');
+                const selectedVoiceInput = document.getElementById('selected-voice');
+
+                optionsContainer.innerHTML = '';
+
+                const createOptionHTML = (voice) => `
+                    <div class="flex items-center">
+                        <div class="voice-icon-circle">
+                            <i class="fa-solid ${voice.icon}"></i>
+                        </div>
+                        <span class="ml-3 font-semibold">${voice.name}</span>
+                    </div>`;
+
+                voices.forEach((voice, index) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.classList.add('p-3', 'cursor-pointer', 'hover:bg-gray-100', 'transition-colors');
+                    optionElement.dataset.value = voice.id;
+                    optionElement.innerHTML = createOptionHTML(voice);
+                    
+                    optionElement.addEventListener('click', () => {
+                        selectedVoiceInput.value = voice.id;
+                        trigger.innerHTML = createOptionHTML(voice) + `<i class="fa-solid fa-chevron-down text-gray-500"></i>`;
+                        optionsContainer.classList.add('hidden');
+                    });
+
+                    optionsContainer.appendChild(optionElement);
+
+                    if (index === 0) {
+                        selectedVoiceInput.value = voice.id;
+                        trigger.innerHTML = createOptionHTML(voice) + `<i class="fa-solid fa-chevron-down text-gray-500"></i>`;
+                    }
+                });
+
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    optionsContainer.classList.toggle('hidden');
+                });
+                
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        optionsContainer.classList.add('hidden');
+                    }
+                });
+            }
+
+            // --- Page Navigation ---
+            document.getElementById('scrollButton').addEventListener('click', e => { e.preventDefault(); document.getElementById('intro-section').scrollIntoView({ behavior: 'smooth' }); });
+            document.getElementById('startButton').addEventListener('click', e => {
+                e.preventDefault();
+                localStorage.getItem('loggedInUser') ? showSection('main-app-section', 'flex') : showSection('login-section', 'flex');
+                showTab('tts-content');
+            });
+            document.getElementById('login-back-button').addEventListener('click', e => { e.preventDefault(); showSection('main-section', 'flex'); });
+            document.getElementById('signup-back-button').addEventListener('click', e => { e.preventDefault(); showSection('login-section', 'flex'); });
+            document.getElementById('to-signup-button').addEventListener('click', e => { e.preventDefault(); showSection('signup-section', 'flex'); });
+            document.getElementById('app-back-button').addEventListener('click', e => { e.preventDefault(); showSection('main-section', 'flex'); });
+            document.getElementById('message-ok-button').addEventListener('click', hideMessage);
+            document.getElementById('logout-button-from-app').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('loggedInUser');
+                showMessage('로그아웃되었습니다.');
+                setTimeout(() => showSection('main-section', 'flex'), 1000);
+            });
+            document.getElementById('tts-tab').addEventListener('click', () => showTab('tts-content'));
+            document.getElementById('my-voice-tab').addEventListener('click', () => showTab('my-voice-content'));
+            
+            // --- My Page Navigation ---
+            document.getElementById('mypage-button').addEventListener('click', e => {
+                e.preventDefault();
+                const loggedInEmail = localStorage.getItem('loggedInUser');
+                const users = JSON.parse(localStorage.getItem('users')) || {};
+                const user = users[loggedInEmail];
+                if (user) {
+                    document.getElementById('mypage-greeting').textContent = `안녕하세요, ${user.name}님 (${user.email})`;
+                }
+                showSection('mypage-section', 'flex');
+                showMypageSubSection('mypage-menu');
+            });
+
+            document.getElementById('change-info-button').addEventListener('click', e => {
+                e.preventDefault();
+                showMypageSubSection('change-info-section');
+            });
+            document.getElementById('history-button').addEventListener('click', async (e) => {
+                e.preventDefault();
+                showMypageSubSection('conversion-history-section');
+                
+                const historyContainer = document.getElementById('conversion-history-section');
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    historyContainer.innerHTML = '<p>로그인이 필요합니다.</p>';
+                    return;
+                }
+
+                // 로딩 중 표시
+                historyContainer.innerHTML = `
+                    <a href="#" class="text-3xl text-gray-400 hover:text-gray-600 mb-4 inline-block" onclick="showMypageSubSection('mypage-menu'); return false;">&#x2190;</a>
+                    <h3 class="text-2xl font-bold mb-6 text-[var(--brand-green-dark)] text-center">변환 기록 확인</h3>
+                    <p>기록을 불러오는 중입니다...</p>`;
+
+                try {
+                    const response = await fetch('http://localhost:3001/api/history', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('기록을 불러오지 못했습니다.');
+
+                    const records = await response.json();
+
+                    let recordsHTML = `
+                        <a href="#" class="text-3xl text-gray-400 hover:text-gray-600 mb-4 inline-block" onclick="showMypageSubSection('mypage-menu'); return false;">&#x2190;</a>
+                        <h3 class="text-2xl font-bold mb-6 text-[var(--brand-green-dark)] text-center">변환 기록 확인</h3>`;
+
+                    if (records.length === 0) {
+                        recordsHTML += `
+                            <div class="text-center text-gray-500 p-8 border border-gray-200 rounded-xl">
+                                <i class="fas fa-list-ul text-4xl mb-4 text-[var(--brand-green-light)]"></i>
+                                <p>아직 변환 기록이 없습니다.</p>
+                            </div>`;
+                    } else {
+                        recordsHTML += '<div class="space-y-3">';
+                        records.forEach(record => {
+                            recordsHTML += `
+                                <div class="p-4 bg-white rounded-lg shadow-sm">
+                                    <p class="text-sm text-gray-500">${new Date(record.createdAt).toLocaleString()}</p>
+                                    <p class="font-semibold truncate my-2" title="${record.text}">${record.text}</p>
+                                    <audio controls src="${record.fileUrl}" class="w-full"></audio>
+                                </div>`;
+                        });
+                        recordsHTML += '</div>';
+                    }
+                    historyContainer.innerHTML = recordsHTML;
+
+                } catch (error) {
+                    historyContainer.innerHTML = `<p>오류: ${error.message}</p>`;
+                }
+            });
+            document.getElementById('settings-button').addEventListener('click', e => {
+                e.preventDefault();
+                showMypageSubSection('settings-section');
+            });
+            
+            document.getElementById('mypage-back-button').addEventListener('click', e => { e.preventDefault(); showSection('main-app-section', 'flex'); });
+            document.getElementById('change-info-back-button').addEventListener('click', e => { e.preventDefault(); showMypageSubSection('mypage-menu'); });
+            document.getElementById('history-back-button').addEventListener('click', e => { e.preventDefault(); showMypageSubSection('mypage-menu'); });
+            document.getElementById('settings-back-button').addEventListener('click', e => { e.preventDefault(); showMypageSubSection('mypage-menu'); });
+
+
+            // --- Validation Functions ---
+            const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            const isValidPassword = (password) => /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{10,}$/.test(password);
+            function calculateAge(dobStr){
+                if(!dobStr) return null;
+                const dob = new Date(dobStr); const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+                return age;
+            }
+
+            // --- Tab key navigation fix for gender radio buttons ---
+            const genderMaleRadio = document.querySelector('input[name="gender"][value="male"]');
+            const genderFemaleRadio = document.querySelector('input[name="gender"][value="female"]');
+            genderMaleRadio.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab' && !e.shiftKey) {
+                    e.preventDefault();
+                    genderFemaleRadio.focus();
+                }
+            });
+            genderFemaleRadio.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab' && e.shiftKey) {
+                    e.preventDefault();
+                    genderMaleRadio.focus();
+                }
+            });
+            
+            // --- Real-time validation for Sign-up ---
+            const signupYear = document.getElementById('signup-year');
+            const signupMonth = document.getElementById('signup-month');
+            const signupDay = document.getElementById('signup-day');
+
+            function handleDobInput(currentInput, nextInput, maxLength) {
+                if (currentInput.value.length > maxLength) {
+                    currentInput.value = currentInput.value.slice(0, maxLength);
+                }
+                if (currentInput.value.length === maxLength && nextInput) {
+                    nextInput.focus();
+                }
+                updateAge();
+            }
+
+            signupYear.addEventListener('input', () => handleDobInput(signupYear, signupMonth, 4));
+            signupMonth.addEventListener('input', () => handleDobInput(signupMonth, signupDay, 2));
+            signupDay.addEventListener('input', () => handleDobInput(signupDay, null, 2));
+
+            function updateAge() {
+                const year = signupYear.value;
+                const month = signupMonth.value;
+                const day = signupDay.value;
+                const calculatedAgeInput = document.getElementById('calculated-age');
+                if (year.length === 4 && month.length > 0 && day.length > 0) {
+                     const dobStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                     calculatedAgeInput.value = calculateAge(dobStr) || '';
+                } else {
+                    calculatedAgeInput.value = '';
+                }
+            }
+            
+            const signupPassword = document.getElementById('signup-password');
+            const signupPasswordConfirm = document.getElementById('signup-password-confirm');
+            const passwordValidationError = document.getElementById('password-validation-error');
+            const passwordMatchError = document.getElementById('password-match-error');
+            signupPassword.addEventListener('input', () => {
+                passwordValidationError.classList.toggle('text-green-600', isValidPassword(signupPassword.value));
+                passwordValidationError.classList.toggle('text-red-600', !isValidPassword(signupPassword.value));
+                passwordMatchError.classList.toggle('hidden', !signupPasswordConfirm.value || signupPassword.value === signupPasswordConfirm.value);
+            });
+            signupPasswordConfirm.addEventListener('input', () => {
+                passwordMatchError.classList.toggle('hidden', signupPassword.value === signupPasswordConfirm.value);
+            });
+
+            // --- Real-time validation for My Page ---
+            const newPassword = document.getElementById('new-password');
+            const newPasswordConfirm = document.getElementById('new-password-confirm');
+            const newPasswordValidationError = document.getElementById('new-password-validation-error');
+            const newPasswordMatchError = document.getElementById('new-password-match-error');
+             newPassword.addEventListener('input', () => {
+                newPasswordValidationError.classList.toggle('text-green-600', isValidPassword(newPassword.value));
+                newPasswordValidationError.classList.toggle('text-red-600', !isValidPassword(newPassword.value));
+                newPasswordMatchError.classList.toggle('hidden', !newPasswordConfirm.value || newPassword.value === newPasswordConfirm.value);
+            });
+            newPasswordConfirm.addEventListener('input', () => {
+                newPasswordMatchError.classList.toggle('hidden', newPassword.value === newPasswordConfirm.value);
+            });
+
+            // --- Form Handlers ---
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                if (!email || !password) return showMessage('이메일과 비밀번호를 모두 입력해주세요.');
+
+                showLoading();
+
+                try {
+                    const response = await fetch('http://localhost:3001/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            pw: password
+                        })
+                    });
+
+                    const result = await response.json();
+                    hideLoading();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || '로그인에 실패했습니다.');
+                    }
+
+                    // 로그인 성공: 서버로부터 받은 토큰(JWT)을 브라우저에 저장합니다.
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('loggedInUser', email); // 앱의 다른 부분에서 사용하기 위해 이메일도 저장
+
+                    showMessage('로그인 성공!');
+                    setTimeout(() => {
+                        hideMessage();
+                        showSection('main-app-section', 'flex');
+                        showTab('tts-content');
+                    }, 1000);
+
+                } catch (error) {
+                    hideLoading();
+                    showMessage(error.message);
+                }
+            });
+            
+            document.getElementById('signup-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const name = document.getElementById('signup-name').value;
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const confirmPassword = document.getElementById('signup-password-confirm').value;
+                const year = document.getElementById('signup-year').value;
+                const month = document.getElementById('signup-month').value;
+                const day = document.getElementById('signup-day').value;
+                const age = document.getElementById('calculated-age').value;
+                const gender = document.querySelector('input[name="gender"]:checked');
+                
+                // --- 유효성 검사 (기존과 동일) ---
+                if (!name || !email || !year || !month || !day || !password || !confirmPassword || !gender) return showMessage('모든 정보를 입력해주세요.');
+                if (!isValidEmail(email)) return showMessage('올바른 이메일 형식을 입력해주세요.');
+                if (!isValidPassword(password)) return showMessage('비밀번호는 영문, 숫자, 특수문자를 포함하여 10자리 이상이어야 합니다.');
+                if (password !== confirmPassword) return showMessage('비밀번호가 일치하지 않습니다.');
+                
+                showLoading();
+
+                try {
+                    const response = await fetch('http://localhost:3001/api/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            pw: password,
+                            name: name,
+                            age: age,
+                            gender: gender.value
+                        }),
+                    });
+
+                    const result = await response.json();
+                    hideLoading();
+
+                    if (!response.ok) {
+                        // 서버에서 보낸 에러 메시지 (예: "이미 사용 중인 이메일입니다.")를 표시
+                        throw new Error(result.message || `서버 오류: ${response.status}`);
+                    }
+                    
+                    // 회원가입 성공
+                    showMessage('회원가입 성공! 로그인해주세요.');
+                    showSection('login-section', 'flex');
+
+                } catch (error) {
+                    hideLoading();
+                    showMessage(error.message);
+                }
+            });
+
+            // --- My Page Form Handlers ---
+            document.getElementById('send-code-button').addEventListener('click', () => {
+                const loggedInUser = localStorage.getItem('loggedInUser');
+                const currentEmail = document.getElementById('current-email').value;
+                if (!currentEmail.trim()) return showMessage('이메일을 입력해주세요.');
+                if (currentEmail !== loggedInUser) return showMessage('로그인된 사용자의 이메일과 일치하지 않습니다.');
+
+                showMessage('인증코드가 이메일로 전송되었습니다: 123456');
+                document.getElementById('reset-password-step').disabled = false;
+                const changeBtn = document.getElementById('change-password-button');
+                changeBtn.disabled = false;
+                changeBtn.classList.remove('bg-gray-300');
+                changeBtn.classList.add('bg-[var(--brand-green-dark)]', 'hover:bg-[var(--brand-green-hover)]');
+            });
+
+            document.getElementById('password-reset-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const code = document.getElementById('verification-code').value;
+                const newPass = document.getElementById('new-password').value;
+                const newPassConfirm = document.getElementById('new-password-confirm').value;
+
+                if (code !== '123456') return showMessage('인증코드가 올바르지 않습니다.');
+                if (!isValidPassword(newPass)) return showMessage('새 비밀번호가 유효하지 않습니다.\n(영문, 숫자, 특수문자 포함 10자리 이상)');
+                if (newPass !== newPassConfirm) return showMessage('새 비밀번호가 일치하지 않습니다.');
+
+                showLoading();
+                setTimeout(() => {
+                    const loggedInUser = localStorage.getItem('loggedInUser');
+                    const users = JSON.parse(localStorage.getItem('users')) || {};
+                    if (users[loggedInUser]) {
+                        users[loggedInUser].password = newPass;
+                        localStorage.setItem('users', JSON.stringify(users));
+                        hideLoading();
+                        showMessage('비밀번호가 성공적으로 변경되었습니다.');
+                        setTimeout(() => {
+                            hideMessage();
+                            showSection('main-app-section', 'flex');
+                        }, 1500);
+                    } else {
+                        hideLoading();
+                        showMessage('사용자 정보를 찾는 중 오류가 발생했습니다.');
+                    }
+                }, 500);
+            });
+
+            // --- Profile Picture Logic ---
+            document.getElementById('profile-pic-container').addEventListener('click', () => {
+                document.getElementById('profile-pic-input').click();
+            });
+
+            document.getElementById('profile-pic-input').addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageSrc = e.target.result;
+                        document.getElementById('profile-image').src = imageSrc;
+                        document.getElementById('header-profile-image').src = imageSrc;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+
+            // --- Gemini TTS API ---
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            function base64ToArrayBuffer(base64) {
+                const binaryString = window.atob(base64); const len = binaryString.length; const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); } return bytes.buffer;
+            }
+            function pcmToWav(pcmData, sampleRate) {
+                const numChannels = 1, bytesPerSample = 2; const blockAlign = numChannels * bytesPerSample;
+                const byteRate = sampleRate * blockAlign; const dataSize = pcmData.length * bytesPerSample;
+                const buffer = new ArrayBuffer(44 + dataSize); const view = new DataView(buffer);
+                view.setUint32(0, 0x52494646, false); view.setUint32(4, 36 + dataSize, true); view.setUint32(8, 0x57415645, false);
+                view.setUint32(12, 0x666d7420, false); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true); view.setUint32(28, byteRate, true); view.setUint16(32, blockAlign, true); view.setUint16(34, 16, true);
+                view.setUint32(36, 0x64617461, false); view.setUint32(40, dataSize, true);
+                for (let i = 0; i < pcmData.length; i++) { view.setInt16(44 + i * 2, pcmData[i], true); }
+                return new Blob([view], { type: 'audio/wav' });
+            }
+            document.getElementById('tts-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const text = document.getElementById('tts-text').value; 
+                const modelId = document.getElementById('selected-voice').value;
+                const token = localStorage.getItem('token'); // 로그인 시 저장한 토큰 가져오기
+
+                if (!text.trim()) {
+                    return showMessage('변환할 텍스트를 입력해주세요.');
+                }
+                if (!token) {
+                    return showMessage('로그인이 필요합니다. 다시 로그인해주세요.');
+                }
+
+                showLoading();
+                
+                try {
+                    const response = await fetch('http://localhost:3001/api/convert', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` // 인증 토큰 헤더에 추가
+                        },
+                        body: JSON.stringify({
+                            text: text,
+                            modelId: modelId
+                        })
+                    });
+
+                    const result = await response.json();
+                    hideLoading();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || '음성 변환에 실패했습니다.');
+                    }
+                    
+                    // 성공: 결과 오디오 플레이어에 URL 연결
+                    const ttsAudioEl = document.getElementById('tts-audio');
+                    ttsAudioEl.src = result.url;
+                    
+                    document.getElementById('tts-result').classList.remove('hidden');
+                    console.log("음성 변환 성공! URL:", result.url);
+
+                } catch (error) {
+                    hideLoading();
+                    showMessage(error.message);
+                    console.error("TTS 변환 실패:", error);
+                }
+            });
+            
+            shareModalClose.addEventListener('click', () => { shareModal.style.display = 'none'; });
+            shareModal.addEventListener('click', (e) => { if (e.target === shareModal) shareModal.style.display = 'none'; });
+
+            shareOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const platform = option.dataset.platform; const textToShare = document.getElementById('tts-text').value;
+                    shareModal.style.display = 'none';
+                    switch (platform) {
+                        case 'instagram': showMessage('인스타그램 DM 공유는 모바일의 공유하기 기능을 이용해주세요.'); break;
+                        case 'kakao':
+                             if (Kakao && Kakao.isInitialized()) {
+                                Kakao.Share.sendDefault({
+                                    objectType: 'text', text: `아보카도에서 생성된 음성 메시지입니다 🥑\n\n"${textToShare}"`,
+                                    link: { mobileWebUrl: window.location.href, webUrl: window.location.href, },
+                                    buttons: [{ title: '아보카도에서 직접 들어보기', link: { mobileWebUrl: window.location.href, webUrl: window.location.href } }]
+                                });
+                            } else { showMessage('카카오톡 공유 기능을 초기화하지 못했습니다.'); }
+                            break;
+                        case 'email':
+                            emailModalInput.value = localStorage.getItem('loggedInUser') || '';
+                            emailModal.style.display = 'flex';
+                            break;
+                    }
+                });
+            });
+
+            // --- Email Modal Logic ---
+            emailModalForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const recipientEmail = emailModalInput.value;
+                if (!isValidEmail(recipientEmail)) return showMessage('올바른 이메일 주소를 입력하세요.');
+                const text = document.getElementById('tts-text').value;
+                const subject = encodeURIComponent('아보카도 음성 변환 결과');
+                const body = encodeURIComponent(`안녕하세요. 아보카도에서 생성한 음성입니다.\n\n[변환 텍스트]\n${text}\n\n음성 파일은 다운로드하여 이메일에 직접 첨부해주세요.\n\n감사합니다.`);
+                window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+                emailModal.style.display = 'none';
+            });
+            emailModalCancel.addEventListener('click', () => { emailModal.style.display = 'none'; });
+        });
+    </script>
+</body>
+</html>

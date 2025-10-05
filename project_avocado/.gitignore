@@ -1,0 +1,17 @@
+# Node.js
+/backend/node_modules
+/backend/uploads
+/backend/.env
+
+# Python
+/ai/venv
+/ai/__pycache__
+/ai/outputs/
+/ai/embeddings/
+/ai/GPT-SoVITS/
+.DS_Store
+
+# Coqui TTS model cache
+# This path is usually in the user's home directory, not the project folder,
+# but adding it here is good practice in case it's placed locally.
+/ai/tts_models/

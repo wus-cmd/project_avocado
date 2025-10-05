@@ -1,0 +1,14 @@
+cd ai
+py -3.11 -m venv venv
+.\venv\Scripts\activate
+(venv) E:\avocado\ai> pip install -r requirements.txt
+
+ai서버 오픈
+# 가상환경 활성화
+.\venv\Scripts\activate
+# AI 서버 실행
+uvicorn main:app --port 8000
+
+backend sorver open
+node src/app.js
+
