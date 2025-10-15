@@ -16,29 +16,39 @@ router.post('/convert', authMiddleware, async (req, res) => {
     }
 
     try {
-        // --- 여기가 핵심 수정 부분입니다 ---
-        // 1. DB에서 모델 ID로 실제 파일 경로(filePath) 조회
-        const [rows] = await db.query(
-            'SELECT filePath FROM VoiceModel WHERE id = ? AND (userId = ? OR type = ?)',
-            [modelId, userId, 'base'] // 내 커스텀 모델 또는 기본 모델
-        );
+        let voiceFileName; // AI 서버에 전달할 최종 파일명을 담을 변수
 
-        if (rows.length === 0) {
-            return res.status(404).json({ message: '사용할 수 없는 모델 ID입니다.' });
+        // --- ▼▼▼▼▼ 여기가 핵심 수정 부분입니다 ▼▼▼▼▼ ---
+
+        // 1. modelId가 'default'로 시작하는지 확인 (기본 모델인지 판단)
+        if (modelId.startsWith('default')) {
+            // 기본 모델이면, modelId에 .wav만 붙여서 파일명으로 사용
+            voiceFileName = `${modelId}.wav`;
+        } else {
+            // 기본 모델이 아니면 (커스텀 모델이면), DB에서 파일 경로 조회
+            const [rows] = await db.query(
+                'SELECT filePath FROM VoiceModel WHERE id = ? AND userId = ?',
+                [modelId, userId]
+            );
+
+            if (rows.length === 0) {
+                return res.status(404).json({ message: '사용할 수 없는 모델 ID입니다.' });
+            }
+            
+            // DB에 저장된 전체 경로에서 파일 이름만 추출
+            voiceFileName = path.basename(rows[0].filePath);
         }
+        
+        // --- ▲▲▲▲▲ 여기까지 입니다 ▲▲▲▲▲ ---
 
-        // 2. DB에 저장된 전체 경로에서 파일 이름만 추출
-        const voiceFileName = path.basename(rows[0].filePath); 
+        console.log(`[Backend] AI 서버에 TTS 요청: User ${userId}, FileName ${voiceFileName}`);
 
-        console.log(`[Backend] AI 서버에 TTS 요청: User ${userId}, Model ID ${modelId}, FileName ${voiceFileName}`);
-
-        // 3. AI 서버에 실제 파일명으로 요청
+        // 2. AI 서버에 최종적으로 결정된 voiceFileName으로 요청
         const aiResponse = await axios.post(AI_SERVER_URL, {
             text: text,
-            speaker_wav: voiceFileName, // <--- 조회한 실제 파일명 사용
+            speaker_wav: voiceFileName,
             user_id: userId
         });
-        // ------------------------------------
 
         console.log('AI Server Response Data:', aiResponse.data);
         const { filename, duration } = aiResponse.data;

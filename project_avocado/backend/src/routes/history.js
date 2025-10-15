@@ -3,18 +3,27 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const db = require('../config/db');
 
-// GET /api/history - 현재 로그인된 사용자의 변환 기록 조회
+// GET /api/history - 현재 로그인된 사용자의 변환 기록 조회 (모델 이름 포함)
 router.get('/history', authMiddleware, async (req, res) => {
-    const userId = req.user.id; // 인증 미들웨어를 통해 얻은 사용자 ID
+    const userId = req.user.id;
 
     try {
-        // OutputVoice 테이블에서 현재 사용자의 기록을 최신순으로 조회
+        // VoiceModel 테이블을 JOIN하여 모델 이름(modelName)까지 함께 조회
         const [rows] = await db.query(
-            'SELECT * FROM OutputVoice WHERE userId = ? ORDER BY createdAt DESC',
+            `SELECT
+                ov.id,
+                ov.text,
+                ov.fileUrl,
+                ov.createdAt,
+                vm.name AS modelName 
+             FROM OutputVoice AS ov
+             LEFT JOIN VoiceModel AS vm ON ov.modelId = vm.id
+             WHERE ov.userId = ?
+             ORDER BY ov.createdAt DESC`,
             [userId]
         );
         
-        res.status(200).json(rows); // 조회된 기록들을 JSON 형태로 반환
+        res.status(200).json(rows);
 
     } catch (error) {
         console.error('DB 조회 중 오류 발생:', error);
