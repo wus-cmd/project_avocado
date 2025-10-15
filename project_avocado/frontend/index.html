@@ -771,7 +771,7 @@
                 const baseVoices = [
                     { id: 'default_male', icon: 'fa-solid fa-person', name: '남성' },
                     { id: 'default_female', icon: 'fa-solid fa-person-dress', name: '여성' },
-                    { id: 'default_charactor', icon: 'fa-robot', name: '캐릭터' },
+                    { id: 'default_charactor', icon: 'fa-solid fa-robot', name: '캐릭터' },
                 ];
                 
                 let allVoices = [...baseVoices];
@@ -787,7 +787,7 @@
                             const data = await response.json();
                             const customVoices = data.models.map(model => ({
                                 id: String(model.id),
-                                icon: 'fa-user',
+                                icon: 'fa-solid fa-user',
                                 name: `${model.name} (내 목소리)`,
                                 isCustom: true
                             }));
@@ -924,7 +924,7 @@
                                 <p>아직 변환 기록이 없습니다.</p>
                             </div>`;
                     } else {
-                        recordsHTML += '<div class="space-y-3">';
+                        recordsHTML += '<div class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">';
                         records.forEach(record => {
                             // 모델 이름이 없거나 삭제된 경우 '알 수 없음'으로 표시
                             const modelName = record.modelName || '기본 모델';
