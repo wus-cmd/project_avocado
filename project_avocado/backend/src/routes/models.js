@@ -51,6 +51,14 @@ router.post('/models/custom', authMiddleware, upload.single('voiceSample'), asyn
 
     const userId = req.user.id;
     const modelName = req.body.modelName || '내 목소리';
+    
+    // 1. 파일 경로 변수 설정
+    const tempPath = req.file.path; // multer가 저장한 임시 경로 (예: uploads/voices/user_...)
+    const finalFileName = req.file.filename; // 고유한 최종 파일명 (예: user_16_...)
+
+    // 2. 최종 목적지 경로 계산 (ai/voices 폴더)
+    const finalDirPath = path.join(__dirname, '../../../ai/voices');
+    const finalFilePath = path.join(finalDirPath, finalFileName);
 
     try {
         // 현재 사용자의 모델 개수 확인
@@ -60,16 +68,18 @@ router.post('/models/custom', authMiddleware, upload.single('voiceSample'), asyn
         );
 
         if (countResult[0].count >= 3) {
-            fs.unlinkSync(req.file.path);
+            fs.unlinkSync(tempPath); // 제한 걸리면 임시 파일 삭제
             return res.status(400).json({ message: '최대 3개까지만 모델을 생성할 수 있습니다.' });
         }
 
-        // DB에 모델 정보 저장
-        const filePath = req.file.path;
-        
+        // 3. 임시 파일을 최종 목적지로 이동!
+        fs.renameSync(tempPath, finalFilePath);
+        console.log(`[Backend] 파일 이동 완료: ${finalFilePath}`);
+
+        // 4. DB에는 최종 파일 경로를 저장
         const [result] = await db.query(
-            'INSERT INTO VoiceModel (userId, name, filePath) VALUES (?, ?, ?)',
-            [userId, modelName, filePath]
+            'INSERT INTO VoiceModel (userId, name, type, filePath) VALUES (?, ?, ?, ?)',
+            [userId, modelName, 'custom', finalFilePath] // 최종 경로를 저장
         );
 
         res.status(201).json({
@@ -80,9 +90,10 @@ router.post('/models/custom', authMiddleware, upload.single('voiceSample'), asyn
 
     } catch (error) {
         console.error('모델 생성 오류:', error);
-        if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
+        // 오류 발생 시 임시 파일 및 옮겨진 파일 모두 삭제 시도
+        if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        if (fs.existsSync(finalFilePath)) fs.unlinkSync(finalFilePath);
+        
         res.status(500).json({ message: '모델 생성에 실패했습니다.' });
     }
 });
