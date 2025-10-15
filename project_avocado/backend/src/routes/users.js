@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
         }
         const payload = { id: user.id, email: user.email, name: user.name };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
         res.status(200).json({ message: '로그인 성공!', token: token });
     } catch (error) {
         console.error(error);
@@ -64,6 +64,27 @@ router.get('/user/:id', authMiddleware, async (req, res) => {
         email: req.user.email,
         name: req.user.name
     });
+});
+
+// GET /api/user/profile - 현재 로그인한 사용자 프로필 조회
+router.get('/user/profile', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        const [rows] = await db.query(
+            'SELECT id, email, name, age, gender FROM User WHERE id = ?',
+            [userId]
+        );
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+        
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('프로필 조회 오류:', error);
+        res.status(500).json({ message: '프로필 조회에 실패했습니다.' });
+    }
 });
 
 module.exports = router;

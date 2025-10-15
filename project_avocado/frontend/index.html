@@ -164,10 +164,10 @@
             <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 transition-transform duration-500 hover:scale-105">
                 <div class="flex items-center mb-4">
                     <i class="fas fa-seedling text-3xl text-[var(--brand-green-light)] mr-4"></i>
-                    <h2 class="text-3xl md:text-4xl font-bold text-[var(--brand-green-dark)]">프로젝트 개요</h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-[var(--brand-green-dark)]">AVOCADO 프로젝트 개요</h2>
                 </div>
                 <p class="text-lg md:text-xl text-gray-700 leading-relaxed pl-11">
-                    아보카도는 발화에 어려움을 겪는 사용자를 위해 AI 기반 텍스트-음성 변환(TTS) 및 커스텀 음성 모델 생성 서비스를 제공합니다. 사용자가 입력한 텍스트를 다양한 AI 음성 모델로 변환하거나, 자신의 목소리를 기반으로 개인화된 음성 모델을 제작하여 자연스러운 소통을 가능하게 돕는 것을 목표로 합니다.
+                    저희 아보카도는 발화에 어려움을 겪는 사용자를 위해 AI 기반 텍스트-음성 변환(TTS) 및 커스텀 음성 모델 생성 서비스를 제공합니다. 사용자가 입력한 텍스트를 다양한 AI 음성 모델로 변환하거나, 자신의 목소리를 기반으로 개인화된 음성 모델을 제작하여 자연스러운 소통을 가능하게 돕는 것을 목표로 합니다.
                 </p>
             </div>
             <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 transition-transform duration-300 hover:translate-y-[-8px] hover:shadow-md">
@@ -186,6 +186,15 @@
                 </div>
                 <p class="text-gray-600 pl-11">
                     사용자가 직접 녹음한 음성을 기반으로 세상에 하나뿐인 '나만의 목소리' 모델을 만들 수 있습니다. 발음이 다소 불분명해도 음색과 톤을 학습하여 개인화된 목소리를 생성합니다.
+                </p>
+            </div>
+                        <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 transition-transform duration-300 hover:translate-y-[-8px] hover:shadow-md">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-wrench text-3xl" style="color: #63E6BE;"></i>
+                    <h3 class="text-2xl font-semibold text-[var(--brand-green-dark)]"> 제작자</h3>
+                </div>
+                <p class="text-gray-600 pl-11">
+                    TEAM. 김변나
                 </p>
             </div>
         </div>
@@ -268,7 +277,7 @@
                     </button>
                     <button id="my-voice-tab" class="tab-button">
                         <i class="fas fa-microphone-alt mr-2"></i>
-                        <span>내 목소리 모델</span>
+                        <span>나만의 목소리 모델</span>
                     </button>
                 </div>
             </div>
@@ -326,17 +335,113 @@
 
             <!-- My Voice Content Section -->
             <div id="my-voice-content" class="w-full pt-6 hidden">
-                <p class="text-gray-600 mb-6 leading-relaxed">
-                    당신만의 AI 음성 모델을 만들어보세요. 아래 버튼을 눌러 제시되는 문장들을 녹음하면, 당신의 음색과 어조를 학습하여 세상에 하나뿐인 목소리를 생성해 드립니다.
-                </p>
-                <button id="start-recording-button" class="w-full bg-[var(--brand-green-dark)] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[var(--brand-green-hover)] transition-colors duration-300">
-                    <i class="fa-solid fa-microphone-lines mr-2"></i> 녹음 시작하기
-                </button>
-                <div id="recording-status" class="mt-6 hidden">
-                    <div class="flex items-center justify-center space-x-2 text-gray-600">
-                        <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                        <p>녹음 중입니다...</p>
+                <!-- 안내 문구 -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-blue-800">커스텀 음성 모델 만들기</h3>
+                            <p class="text-sm text-blue-700 mt-1">
+                                당신만의 목소리로 AI 음성 모델을 만들어보세요. 
+                                <strong>최대 3개</strong>까지 생성 가능합니다.
+                            </p>
+                        </div>
                     </div>
+                </div>
+
+                <!-- 모델 개수 표시 -->
+                <div class="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-xl">
+                    <span class="text-gray-700 font-semibold">내 커스텀 모델</span>
+                    <span id="model-count-badge" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">
+                        0 / 3
+                    </span>
+                </div>
+
+                <!-- 내 커스텀 모델 목록 -->
+                <div id="my-models-list" class="space-y-3 mb-6">
+                    <!-- 모델 목록이 여기에 동적으로 추가됩니다 -->
+                </div>
+
+                <!-- 모델 생성 폼 -->
+                <div id="create-model-form" class="space-y-4">
+                    <form id="custom-voice-upload-form">
+                        <div class="space-y-4">
+                            <!-- 모델 이름 입력 -->
+                            <div>
+                                <label for="model-name-input" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    모델 이름 <span class="text-red-500">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="model-name-input" 
+                                    placeholder="예: 내 목소리, 엄마 목소리" 
+                                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green-light)]"
+                                    maxlength="20"
+                                    required
+                                >
+                                <p class="text-xs text-gray-500 mt-1">최대 20자</p>
+                            </div>
+
+                            <!-- 음성 파일 업로드 -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    음성 파일 업로드 <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex items-center gap-3">
+                                    <label for="voice-file-input" class="flex-1 cursor-pointer">
+                                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[var(--brand-green-light)] transition-colors">
+                                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                                            <p class="text-sm text-gray-600">
+                                                <span class="font-semibold text-[var(--brand-green-dark)]">클릭하여 파일 선택</span>
+                                                또는 드래그 앤 드롭
+                                            </p>
+                                            <p class="text-xs text-gray-500 mt-1">WAV 또는 MP3 (최대 50MB)</p>
+                                        </div>
+                                    </label>
+                                    <input 
+                                        type="file" 
+                                        id="voice-file-input" 
+                                        accept=".wav,.mp3,audio/wav,audio/mpeg" 
+                                        class="hidden"
+                                        required
+                                    >
+                                </div>
+                                <p id="file-name-display" class="text-sm text-gray-600 mt-2 hidden"></p>
+                            </div>
+
+                            <!-- 안내사항 -->
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                <h4 class="font-semibold text-yellow-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb mr-2"></i>
+                                    녹음 팁
+                                </h4>
+                                <ul class="text-xs text-yellow-700 space-y-1 list-disc list-inside">
+                                    <li>조용한 환경에서 녹음해주세요</li>
+                                    <li>최소 1분 이상의 음성이 필요합니다</li>
+                                    <li>자연스럽게 말씀해주세요 (발음이 불완전해도 괜찮습니다)</li>
+                                    <li>다양한 문장을 읽으면 더 좋은 결과를 얻을 수 있습니다</li>
+                                </ul>
+                            </div>
+
+                            <!-- 제출 버튼 -->
+                            <button 
+                                type="submit" 
+                                id="upload-voice-button"
+                                class="w-full bg-[var(--brand-green-dark)] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[var(--brand-green-hover)] transition-colors duration-300"
+                            >
+                                <i class="fa-solid fa-plus mr-2"></i> 커스텀 모델 생성하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 모델 생성 제한 메시지 (3개 이상일 때) -->
+                <div id="model-limit-message" class="hidden text-center p-6 bg-gray-50 rounded-xl">
+                    <i class="fas fa-exclamation-circle text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-600 font-semibold">최대 3개의 모델을 생성했습니다.</p>
+                    <p class="text-sm text-gray-500 mt-2">기존 모델을 삭제하면 새로운 모델을 만들 수 있습니다.</p>
                 </div>
             </div>
         </div>
@@ -661,13 +766,39 @@
                 }
             }
 
-            function populateVoices() {
-                const voices = [
-                    { id: 'conan', icon: 'fa-user-secret', name: '코난' },
-                    { id: 'jjanggu', icon: 'fa-child', name: '짱구' },
-                    { id: 'keroro', icon: 'fa-frog', name: '케로로' },
+            async function populateVoices() {
+                const token = localStorage.getItem('token');
+                const baseVoices = [
+                    { id: 'default_male.wav', icon: 'fa-solid fa-person', name: '남성' },
+                    { id: 'default_female.wav', icon: 'fa-solid fa-person-dress', name: '여성' },
+                    { id: 'default_charactor.wav', icon: 'fa-robot', name: '캐릭터' },
                 ];
                 
+                let allVoices = [...baseVoices];
+                
+                // 로그인한 경우 커스텀 모델 불러오기
+                if (token) {
+                    try {
+                        const response = await fetch('http://localhost:3001/api/models/my-models', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const customVoices = data.models.map(model => ({
+                                id: String(model.id),
+                                icon: 'fa-user',
+                                name: `${model.name} (내 목소리)`,
+                                isCustom: true
+                            }));
+                            allVoices = [...baseVoices, ...customVoices];
+                        }
+                    } catch (error) {
+                        console.error('커스텀 모델 로드 실패:', error);
+                    }
+                }
+                
+                // UI 생성
                 const container = document.getElementById('custom-select-container');
                 const trigger = document.getElementById('custom-select-trigger');
                 const optionsContainer = document.getElementById('custom-select-options');
@@ -677,13 +808,13 @@
 
                 const createOptionHTML = (voice) => `
                     <div class="flex items-center">
-                        <div class="voice-icon-circle">
-                            <i class="fa-solid ${voice.icon}"></i>
+                        <div class="voice-icon-circle ${voice.isCustom ? 'bg-green-100' : ''}">
+                            <i class="${voice.icon} ${voice.isCustom ? 'text-green-700' : ''}"></i>
                         </div>
-                        <span class="ml-3 font-semibold">${voice.name}</span>
+                        <span class="ml-3 font-semibold ${voice.isCustom ? 'text-green-800' : ''}">${voice.name}</span>
                     </div>`;
 
-                voices.forEach((voice, index) => {
+                allVoices.forEach((voice, index) => {
                     const optionElement = document.createElement('div');
                     optionElement.classList.add('p-3', 'cursor-pointer', 'hover:bg-gray-100', 'transition-colors');
                     optionElement.dataset.value = voice.id;
@@ -1175,6 +1306,197 @@
                 emailModal.style.display = 'none';
             });
             emailModalCancel.addEventListener('click', () => { emailModal.style.display = 'none'; });
+            // --- 커스텀 음성 모델 관련 기능 ---
+
+            // 파일 선택 시 파일명 표시
+            document.getElementById('voice-file-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const fileNameDisplay = document.getElementById('file-name-display');
+                
+                if (file) {
+                    fileNameDisplay.textContent = `선택된 파일: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                    fileNameDisplay.classList.remove('hidden');
+                } else {
+                    fileNameDisplay.classList.add('hidden');
+                }
+            });
+
+            // 내 모델 목록 불러오기
+            async function loadMyModels() {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                try {
+                    const response = await fetch('http://localhost:3001/api/models/my-models', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 419 || response.status === 401) {
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('loggedInUser');
+                            showMessage('로그인 세션이 만료되었습니다.');
+                            return;
+                        }
+                        throw new Error('모델 목록을 불러오지 못했습니다.');
+                    }
+
+                    const data = await response.json();
+                    const { models, count, maxCount } = data;
+
+                    // 모델 개수 업데이트
+                    document.getElementById('model-count-badge').textContent = `${count} / ${maxCount}`;
+
+                    // 모델 목록 렌더링
+                    const modelsList = document.getElementById('my-models-list');
+                    modelsList.innerHTML = '';
+
+                    if (count === 0) {
+                        modelsList.innerHTML = `
+                            <div class="text-center text-gray-500 p-6 border border-gray-200 rounded-xl">
+                                <i class="fas fa-microphone-slash text-4xl mb-3 text-gray-300"></i>
+                                <p>아직 생성된 커스텀 모델이 없습니다.</p>
+                            </div>`;
+                    } else {
+                        models.forEach(model => {
+                            const modelCard = document.createElement('div');
+                            modelCard.className = 'flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow';
+                            modelCard.innerHTML = `
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-full bg-[var(--brand-green-light)] bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-user text-[var(--brand-green-dark)]"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">${model.name}</p>
+                                        <p class="text-xs text-gray-500">${new Date(model.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    class="delete-model-btn text-red-500 hover:text-red-700 transition-colors" 
+                                    data-model-id="${model.id}"
+                                    data-model-name="${model.name}"
+                                >
+                                    <i class="fas fa-trash-alt text-lg"></i>
+                                </button>
+                            `;
+                            modelsList.appendChild(modelCard);
+                        });
+
+                        // 삭제 버튼 이벤트 리스너
+                        document.querySelectorAll('.delete-model-btn').forEach(btn => {
+                            btn.addEventListener('click', async (e) => {
+                                const modelId = e.currentTarget.dataset.modelId;
+                                const modelName = e.currentTarget.dataset.modelName;
+                                
+                                if (!confirm(`"${modelName}" 모델을 삭제하시겠습니까?`)) return;
+
+                                showLoading();
+                                try {
+                                    const deleteResponse = await fetch(`http://localhost:3001/api/models/custom/${modelId}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`
+                                        }
+                                    });
+
+                                    if (!deleteResponse.ok) throw new Error('모델 삭제에 실패했습니다.');
+
+                                    hideLoading();
+                                    showMessage('모델이 삭제되었습니다.');
+                                    loadMyModels();
+                                } catch (error) {
+                                    hideLoading();
+                                    showMessage(error.message);
+                                }
+                            });
+                        });
+                    }
+
+                    // 생성 폼 표시/숨김
+                    if (count >= maxCount) {
+                        document.getElementById('create-model-form').classList.add('hidden');
+                        document.getElementById('model-limit-message').classList.remove('hidden');
+                    } else {
+                        document.getElementById('create-model-form').classList.remove('hidden');
+                        document.getElementById('model-limit-message').classList.add('hidden');
+                    }
+
+                } catch (error) {
+                    console.error('모델 로드 오류:', error);
+                }
+            }
+
+            // 커스텀 음성 업로드 폼 제출
+            document.getElementById('custom-voice-upload-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const modelName = document.getElementById('model-name-input').value.trim();
+                const fileInput = document.getElementById('voice-file-input');
+                const file = fileInput.files[0];
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    return showMessage('로그인이 필요합니다.');
+                }
+
+                if (!modelName) {
+                    return showMessage('모델 이름을 입력해주세요.');
+                }
+
+                if (!file) {
+                    return showMessage('음성 파일을 선택해주세요.');
+                }
+
+                if (file.size > 50 * 1024 * 1024) {
+                    return showMessage('파일 크기는 50MB 이하여야 합니다.');
+                }
+
+                const formData = new FormData();
+                formData.append('voiceSample', file);
+                formData.append('modelName', modelName);
+
+                showLoading();
+
+                try {
+                    const response = await fetch('http://localhost:3001/api/models/custom', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    hideLoading();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || '모델 생성에 실패했습니다.');
+                    }
+
+                    showMessage('커스텀 모델이 생성되었습니다! 🎉');
+                    
+                    // 폼 초기화
+                    document.getElementById('model-name-input').value = '';
+                    fileInput.value = '';
+                    document.getElementById('file-name-display').classList.add('hidden');
+
+                    // 목록 새로고침
+                    loadMyModels();
+
+                } catch (error) {
+                    hideLoading();
+                    showMessage(error.message);
+                    console.error('모델 생성 오류:', error);
+                }
+            });
+
+            // My Voice 탭 클릭 시 모델 목록 로드
+            document.getElementById('my-voice-tab').addEventListener('click', () => {
+                showTab('my-voice-content');
+                loadMyModels();
+            });
         });
     </script>
 </body>

@@ -9,6 +9,6 @@ ai서버 오픈
 # AI 서버 실행
 uvicorn main:app --port 8000
 
-backend sorver open
+backend server open
 node src/app.js
 

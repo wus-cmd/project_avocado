@@ -1,0 +1,74 @@
+2025-10-15 12:04:15,394 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\voices
+2025-10-15 12:04:15,395 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\outputs
+2025-10-15 12:04:15,395 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\temp
+2025-10-15 12:04:15,395 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 12:18:25,246 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\voices
+2025-10-15 12:18:25,246 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\outputs
+2025-10-15 12:18:25,247 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\temp
+2025-10-15 12:18:25,247 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 12:55:59,133 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\voices
+2025-10-15 12:55:59,133 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\outputs
+2025-10-15 12:55:59,133 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\temp
+2025-10-15 12:55:59,133 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 13:09:33,097 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\voices
+2025-10-15 13:09:33,097 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\outputs
+2025-10-15 13:09:33,097 - main - INFO - Directory ready: E:\project_avocado\project_avocado\ai\temp
+2025-10-15 13:09:33,097 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 13:36:34,300 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 13:36:34,300 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 13:36:34,300 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 13:36:34,300 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 14:24:07,251 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 14:24:07,251 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 14:24:07,251 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 14:24:07,251 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 14:38:39,103 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 14:38:39,103 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 14:38:39,103 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 14:38:39,103 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 14:50:56,650 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 14:50:56,650 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 14:50:56,650 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 14:50:56,650 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 14:59:39,246 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 14:59:39,246 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 14:59:39,246 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 14:59:39,246 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 15:12:36,544 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 15:12:36,545 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 15:12:36,545 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 15:12:36,545 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 15:15:42,104 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 15:15:42,105 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 15:15:42,105 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 15:15:42,105 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 15:16:31,892 - main - INFO - TTS request from user 1: text='티티에스 변환 성공공...', speaker=default_male.wav
+2025-10-15 15:16:31,894 - main - INFO - Generating TTS with voice: E:\project_avocado_old\project_avocado\ai\voices\default_male.wav
+2025-10-15 15:18:56,119 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 15:18:56,119 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 15:18:56,119 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 15:18:56,119 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 15:19:14,751 - main - INFO - TTS request from user 1: text='티티에스 변환 성공공...', speaker=default_male.wav
+2025-10-15 15:19:14,751 - main - INFO - Generating TTS with voice: E:\project_avocado_old\project_avocado\ai\voices\default_male.wav
+2025-10-15 15:21:39,626 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 15:21:39,627 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 15:21:39,627 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 15:21:39,627 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 15:24:58,739 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 15:24:58,740 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 15:24:58,740 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 15:24:58,740 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 15:25:19,822 - main - INFO - TTS request from user 1: text='티티에스 변환 성공공...', speaker=default_male.wav
+2025-10-15 15:25:19,823 - main - INFO - Generating TTS with voice: E:\project_avocado_old\project_avocado\ai\voices\default_male.wav
+2025-10-15 16:52:06,653 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 16:52:06,653 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 16:52:06,653 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 16:52:06,654 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 16:53:52,819 - main - INFO - TTS request from user 1: text='티티에스 변환 성공공...', speaker=default_male.wav
+2025-10-15 16:53:52,819 - main - INFO - Generating TTS with voice: E:\project_avocado_old\project_avocado\ai\voices\default_male.wav
+2025-10-15 16:58:08,777 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\voices
+2025-10-15 16:58:08,777 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\outputs
+2025-10-15 16:58:08,777 - main - INFO - Directory ready: E:\project_avocado_old\project_avocado\ai\temp
+2025-10-15 16:58:08,777 - main - INFO - Loading TTS model: tts_models/multilingual/multi-dataset/xtts_v2...
+2025-10-15 16:59:06,194 - main - INFO - TTS request from user 16: text='왜 또 안되냐...', speaker=default_male.wav
+2025-10-15 16:59:06,195 - main - INFO - Generating TTS with voice: E:\project_avocado_old\project_avocado\ai\voices\default_male.wav
