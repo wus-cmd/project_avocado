@@ -1,0 +1,457 @@
+---
+
+# **프로젝트 아보카도: 통합 구현 명세서**
+
+### **문서 버전: 1.0**
+
+### **작성일: 2025년 10월 13일**
+
+---
+
+## **1. 프로젝트 개요**
+
+### **1.1. 프로젝트 목표 및 배경**
+
+본 프로젝트는 발화에 어려움을 겪는 사용자들이 AI 기반 텍스트-음성 변환(TTS) 및 개인 맞춤형 음성 모델 생성을 통해 자연스럽고 인간다운 소통을 할 수 있도록 지원하는 웹 애플리케이션 '아보카도'를 개발하는 것을 목표로 한다. 기존 TTS 서비스들이 가진 기성 목소리의 한계를 넘어, 사용자의 고유한 음색을 반영한 개인화된 음성 모델을 제공함으로써 소통의 친밀감과 표현의 자유를 높이고자 한다.
+
+### **1.2. 주요 기능 요구사항**
+
+* **회원 관리**: 이메일, 생년월일 기반의 회원가입 및 JWT를 통한 로그인/인증 기능을 제공한다.
+* **기본 TTS 변환**: 사용자가 입력한 텍스트를 사전 정의된 **남성, 여성, 캐릭터** 3종의 음성 모델로 변환하여 제공한다.
+* **커스텀 음성 모델 생성**: 사용자가 자신의 음성 파일을 업로드하여, 고유한 음색 특징(스피커 임베딩)을 추출하고 이를 기반으로 한 개인화 음성 모델을 생성한다.
+* **결과 관리 및 활용**: 생성된 모든 음성 파일의 변환 기록을 조회하고, 커스텀 오디오 플레이어를 통해 즉시 재생할 수 있으며, WAV 또는 MP3 형식으로 다운로드할 수 있다.
+
+### **1.3. 전체 시스템 아키텍처**
+
+본 프로젝트는 3-Tier 아키텍처를 기반으로 하며, 각 컴포넌트는 REST API를 통해 상호작용한다.
+
+* **Frontend (Client)**: 사용자와의 인터페이스를 담당하며, 모든 요청은 백엔드 API를 통해 이루어진다. `localhost:5173`에서 실행된다.
+* **Backend (Server)**: API 요청을 받아 핵심 비즈니스 로직을 처리하고, 데이터베이스와 상호작용하며, AI 서버에 음성 합성을 요청하는 중추 역할을 담당한다. `localhost:3001`에서 실행된다.
+* **AI Model (AI Server)**: 백엔드로부터 텍스트와 모델 정보를 받아, 실제 음성 합성을 수행하고 결과 파일명을 반환한다. `localhost:8000`에서 실행된다.
+* **Database (MySQL)**: 사용자 정보, 변환 기록 등 모든 정적 데이터를 영구적으로 저장한다.
+
+---
+
+## **2. 개발 환경 및 기술 스택**
+
+### **2.1. 프론트엔드**
+
+| 구분          | 기술                      | 버전           | 목적                              |
+| :---------- | :---------------------- | :----------- | :------------------------------ |
+| **프레임워크**   | React                   | 19.1.1       | 컴포넌트 기반의 효율적인 UI 개발             |
+| **빌드 도구**   | Vite                    | 7.1.2        | 빠른 개발 서버 및 HMR을 통한 생산성 향상       |
+| **스타일링**    | Tailwind CSS            | (CDN)        | 유틸리티 우선 CSS 프레임워크를 통한 신속한 UI 구축 |
+| **HTTP 통신** | Fetch API               | (Browser)    | 별도 라이브러리 없이 비동기 API 통신          |
+| **아이콘/SDK** | Font Awesome, Kakao SDK | 6.4.2, 2.7.1 | 시각적 요소 표현 및 카카오톡 공유 기능 구현       |
+
+### **2.2. 백엔드**
+
+| 구분            | 기술                            | 버전   | 목적                                 |
+| :------------ | :---------------------------- | :--- | :--------------------------------- |
+| **런타임/프레임워크** | Node.js (Express)             | -    | 비동기 I/O 기반의 효율적인 API 서버 구축         |
+| **인증**        | JWT (JSON Web Token)          | -    | 토큰 기반의 안전하고 확장성 있는 사용자 인증          |
+| **라이브러리**     | axios, bcrypt, multer, mysql2 | -    | 외부 API 통신, 비밀번호 암호화, 파일 업로드, DB 연동 |
+| **데이터베이스**    | MySQL                         | 8.0+ | 안정적인 정형 데이터 관리                     |
+
+### **2.3. AI 모델**
+
+| 구분        | 기술         | 버전   | 목적                                       |
+| :-------- | :--------- | :--- | :--------------------------------------- |
+| **프레임워크** | FastAPI    | -    | 고성능 비동기 API 서버 구축                        |
+| **핵심 모델** | Coqui XTTS | v2   | 다국어 지원 및 Zero-Shot 음성 합성이 가능한 고품질 TTS 모델 |
+| **딥러닝**   | PyTorch    | -    | 딥러닝 모델 구동의 기반 라이브러리                      |
+| **실행 환경** | Python     | 3.11 | AI 모델 서버 실행 환경                           |
+
+---
+
+## **3. 데이터베이스 설계 (ERD)**
+
+### **3.1. 논리적 데이터 모델링 (ERD)**
+
+* **User와 OutputVoice**: 1:N 관계. 한 명의 사용자는 여러 변환 기록을 가질 수 있다.
+* **User와 VoiceModel**: 1:1 관계. 한 명의 사용자는 하나의 커스텀 모델을 가질 수 있다.
+
+### **3.2. 물리적 테이블 명세**
+
+* **`User` (사용자)**
+
+  * `id` (PK, INT): 사용자 고유 ID
+  * `email` (UNIQUE, VARCHAR): 사용자 이메일 (로그인 ID)
+  * `pw` (VARCHAR): 해시 암호화된 비밀번호
+  * `name` (VARCHAR): 사용자 이름
+  * `age` (INT): 사용자 나이
+  * `gender` (VARCHAR): 사용자 성별 (`male` 또는 `female`)
+  * `createdAt` (DATETIME): 가입 일시
+
+* **`VoiceModel` (음성 모델)**
+
+  * `id` (PK, INT): 모델 고유 ID
+  * `userId` (FK, INT): 사용자 ID (커스텀 모델의 경우)
+  * `type` (VARCHAR): 모델 타입 (`base` 또는 `custom`)
+  * `name` (VARCHAR): 모델명 (예: 'male', 'female', '내 목소리')
+  * `embedding_vector` (BLOB): AI가 사용하는 음성 특징 벡터
+
+* **`OutputVoice` (변환 기록)**
+
+  * `id` (PK, INT): 기록 고유 ID
+  * `userId` (FK, INT): 변환을 요청한 사용자 ID
+  * `modelId` (FK, INT): 사용된 음성 모델 ID
+  * `text` (TEXT): 변환에 사용된 원본 텍스트
+  * `fileUrl` (VARCHAR): 생성된 음성 파일의 접근 URL
+  * `createdAt` (DATETIME): 변환 생성 일시
+
+---
+
+## **4. API 명세 (End-to-End)**
+
+* **Base URL**: `http://localhost:3001/api`
+* **인증**: 인증이 필요한 모든 요청은 `Authorization` 헤더에 `Bearer {TOKEN}`을 포함해야 한다.
+
+### **4.1. 인증 API (`/users`)**
+
+* **`POST /register`**: 회원가입
+* **`POST /login`**: 로그인. 성공 시 JWT 토큰 발급
+* **`GET /me`**: 내 정보 조회 (인증 필요)
+
+### **4.2. TTS 변환 API (`/tts`)**
+
+* **`POST /convert`**: 텍스트 음성 변환 요청 (인증 필요)
+
+### **4.3. 음성 모델 관리 API (`/models`)**
+
+* **`POST /custom`**: 커스텀 모델 생성을 위한 음성 파일 업로드 (인증 필요)
+
+### **4.4. 변환 기록 API (`/history`)**
+
+* **`GET /`**: 현재 로그인된 사용자의 모든 변환 기록 조회 (인증 필요)
+
+---
+
+## **5. AI 모델 구현 (`ai/`)**
+
+### **5.1. 핵심 모델 및 선정 사유**
+
+핵심 엔진으로 **Coqui XTTS v2** 모델을 채택했다. 이 모델은 고품질의 다국어 음성 합성을 지원하며, 특히 단 몇 초의 음성만으로 화자의 음색을 복제하는 **Zero-Shot** 기능이 뛰어나다. 이는 발음이 불완전한 사용자의 '발음'은 학습하지 않고, 고유한 '음색'만 추출하여 원본 모델의 깨끗한 발음과 결합하는 본 프로젝트의 목표에 완벽히 부합한다.
+
+### **5.2. 핵심 로직 (`main.py`)**
+
+FastAPI를 사용하여 AI 서버를 구축하고, 서버 시작 시 XTTS 모델을 메모리에 미리 로드하여 요청 처리 지연을 최소화한다.
+
+```python
+# main.py - 일부
+from fastapi import FastAPI
+from pydantic import BaseModel
+from TTS.api import TTS
+import os
+import time
+
+# 1. 서버 시작 시 모델을 메모리에 로드
+tts_model = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
+
+app = FastAPI()
+
+class TTSRequest(BaseModel):
+    text: str
+    speaker_wav: str
+    user_id: int
+
+@app.post("/synthesize")
+def synthesize_speech(request: TTSRequest):
+    # 2. 요청 데이터 수신
+    text = request.text
+    speaker_wav_file = request.speaker_wav 
+    user_id = request.user_id
+
+    # 참조 음성 파일 경로 구성
+    speaker_wav_path = os.path.join("voices/", speaker_wav_file)
+
+    if not os.path.exists(speaker_wav_path):
+        return {"error": "Speaker reference file not found"}, 404
+
+    # 3. 출력 파일명 생성
+    output_dir = "outputs"
+    os.makedirs(output_dir, exist_ok=True)
+    timestamp = int(time.time())
+    base_model_name = os.path.splitext(speaker_wav_file)[0]
+    output_filename = f"user_{user_id}_{base_model_name}_{timestamp}.wav"
+    output_path = os.path.join(output_dir, output_filename)
+
+    # 4. 음성 합성 수행 (내부적으로 스피커 임베딩 추출 및 활용)
+    tts_model.tts_to_file(
+        text=text,
+        speaker_wav=speaker_wav_path,
+        language="ko", # 한국어 설정
+        file_path=output_path
+    )
+
+    # 5. 생성된 파일명 응답
+    return {"filename": output_filename, "message": "TTS synthesis successful"}
+```
+
+### **5.3. 디렉토리 및 파일 관리**
+
+* `outputs/`: AI 모델이 생성한 최종 음성 파일(`.wav`)이 저장되는 공간이다. 파일명은 `user_{ID}_{모델명}_{타임스탬프}` 형식으로 고유성을 확보한다.
+* `voices/`: 커스텀 모델 생성 또는 기본 모델의 음색 참조를 위해 사용되는 원본 음성 샘플이 위치한다.
+
+---
+
+## **6. 백엔드 시스템 구현 (`backend/`)**
+
+### **6.1. 핵심 로직 구현**
+
+#### **JWT 기반 사용자 인증 (`src/middleware/authMiddleware.js`)**
+
+API 요청의 `Authorization` 헤더에 담긴 JWT를 검증하는 미들웨어. 토큰이 유효하면 `req.user` 객체에 디코딩된 사용자 정보를 주입하여 다음 로직으로 전달한다.
+
+```javascript
+// authMiddleware.js - 일부
+const jwt = require('jsonwebtoken');
+
+module.exports = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Authentication token required' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded; // 요청 객체에 사용자 정보 주입
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: 'Invalid token' });
+    }
+};
+```
+
+#### **AI 서버 통신 및 데이터 중개 (`src/routes/tts.js`)**
+
+`authMiddleware`를 통과한 TTS 변환 요청을 받아, `axios`를 사용해 AI 서버(`http://localhost:8000/synthesize`)에 다시 요청을 보낸다. AI 서버로부터 파일명을 응답받아 최종 파일 URL을 생성하고, 이 정보를 DB에 저장한 후 프론트엔드에 응답한다.
+
+```javascript
+// tts.js - 일부
+const express = require('express');
+const router = express.Router();
+const axios = require('axios');
+const authMiddleware = require('../middleware/authMiddleware');
+const db = require('../config/db');
+
+router.post('/convert', authMiddleware, async (req, res) => {
+    const { text, modelId } = req.body;
+    const userId = req.user.id;
+
+    try {
+        // 1. AI 서버에 음성 합성 요청
+        const aiResponse = await axios.post('http://localhost:8000/synthesize', {
+            text: text,
+            speaker_wav: `${modelId}.wav`, // e.g., 'male.wav'
+            user_id: userId
+        });
+
+        const { filename } = aiResponse.data;
+        const fileUrl = `${req.protocol}://${req.get('host')}/storage/${filename}`;
+
+        // 2. 변환 결과를 DB에 저장
+        await db.query(
+            'INSERT INTO OutputVoice (userId, text, fileUrl) VALUES (?, ?, ?)',
+            [userId, text, fileUrl]
+        );
+
+        // 3. 프론트엔드에 최종 URL 응답
+        res.status(200).json({ success: true, url: fileUrl });
+    } catch (error) {
+        res.status(500).json({ message: 'Error during TTS conversion' });
+    }
+});
+```
+
+#### **파일 업로드 처리 (`src/routes/models.js`)**
+
+`multer` 미들웨어를 사용하여 `voiceSample` 필드로 전송된 커스텀 음성 파일을 서버의 `uploads/voices/` 경로에 저장한다.
+
+```javascript
+// models.js - 일부
+const express = require('express');
+const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Multer 저장소 설정
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/voices/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `user_${req.user.id}_${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({ storage: storage });
+
+router.post('/custom', authMiddleware, upload.single('voiceSample'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded.' });
+    }
+    // 업로드 성공 시 파일 경로 응답
+    res.status(201).json({
+        message: 'Voice sample uploaded successfully.',
+        filePath: req.file.path
+    });
+});
+```
+
+### **6.2. 디렉토리 구조**
+
+* `src/config/`: 데이터베이스 연결 설정(`db.js`)을 관리한다.
+* `src/middleware/`: JWT 토큰을 검증하는 인증 미들웨어(`authMiddleware.js`)를 관리한다.
+* `src/routes/`: 기능별 API 엔드포인트(`users.js`, `tts.js` 등)를 정의하고 라우팅 로직을 관리한다.
+* `uploads/voices/`: 사용자가 커스텀 모델 생성을 위해 업로드한 음성 파일이 임시 저장되는 공간이다.
+
+---
+
+
+## **7. 프론트엔드 구현 (`frontend/`)**
+
+프론트엔드는 별도의 프레임워크 없이 순수 `HTML`, `CSS`, `JavaScript(ES6)`를 기반으로 `Single Page Application (SPA)` 형태로 구현되었다. 사용자는 페이지 새로고침 없이 로그인, 회원가입, TTS 변환, 마이페이지 등의 핵심 기능을 모두 경험할 수 있다.
+
+### **7.1. 핵심 UI/UX 컴포넌트 및 로직**
+
+  * **동적 섹션 렌더링**: 사용자의 상태(로그인 여부)와 상호작용에 따라 필요한 화면 섹션(`div`)을 동적으로 표시하거나 숨기는 방식으로 SPA를 구현했다. `showSection()` 함수가 이 역할을 담당하여, 불필요한 DOM 렌더링을 최소화하고 빠른 화면 전환을 제공한다.
+  * **사용자 인증**:
+      * **회원가입 폼**: 이메일, 비밀번호 형식에 대한 실시간 유효성 검사를 수행한다. `isValidPassword()` 함수는 정규식을 통해 비밀번호가 **영문, 숫자, 특수문자를 포함한 10자 이상**인지 확인하며, 일치 여부를 사용자에게 즉시 피드백한다.
+      * **비밀번호 가시성 토글**: `togglePasswordVisibility()` 함수를 통해 사용자가 입력 중인 비밀번호를 확인할 수 있는 기능을 제공하여 사용자 편의성을 높였다.
+  * **커스텀 오디오 플레이어**:
+      * 기본 HTML5 `<audio>` 태그는 숨기고, `Font Awesome` 아이콘과 `<input type="range">`를 조합하여 직관적인 UI를 구현했다.
+      * `play`, `pause`, `timeupdate`, `loadedmetadata`, `ended` 등 오디오 엘리먼트의 핵심 이벤트를 수신하여 **재생/일시정지 버튼 상태를 동기화**하고, **재생 시간과 진행 바(Progress Bar)를 실시간으로 업데이트**한다. `formatTime()` 함수는 초 단위 시간을 `MM:SS` 형식으로 변환하여 사용자에게 익숙한 형태로 표시한다.
+  * **커스텀 드롭다운 메뉴**:
+      * 음성 모델 선택 메뉴를 기본 `<select>`가 아닌 `div`로 구현하여, 각 모델을 나타내는 아이콘과 텍스트를 함께 표시하는 등 자유로운 스타일링을 적용했다. `populateVoices()` 함수가 초기 모델 목록을 동적으로 생성하며, 선택된 값은 별도의 `hidden input`에 저장되어 폼 제출 시 함께 전송된다.
+
+### **7.2. 상태 관리 및 서버 통신**
+
+  * **JWT 토큰 관리**:
+
+      * 로그인 성공 시, 백엔드로부터 받은 **JWT 토큰**을 브라우저의 \*\*`localStorage`\*\*에 저장한다.
+      * 이후 인증이 필요한 모든 API 요청 시(`음성 변환`, `변환 기록 조회` 등), `Authorization` 헤더에 `Bearer {TOKEN}` 형태로 토큰을 담아 전송한다.
+      * 사용자가 앱을 종료하거나 브라우저를 닫아도 로그인 상태가 유지되며, 로그아웃 시 `localStorage`에서 토큰을 명시적으로 삭제하여 세션을 종료시킨다.
+
+  * **서버 통신 로직 (API 연동)**:
+
+      * 브라우저에 내장된 \*\*`Fetch API`\*\*와 `async/await` 문법을 사용하여 백엔드 서버(`http://localhost:3001`)와 비동기 통신을 수행한다.
+      * 모든 API 요청은 `try...catch` 블록으로 감싸져 있어, 네트워크 오류나 서버 측 에러 발생 시 사용자에게 `showMessage()` 함수를 통해 명확한 에러 메시지를 표시한다.
+      * API 요청 전후로 `showLoading()`, `hideLoading()` 함수를 호출하여 사용자에게 현재 시스템이 요청을 처리 중임을 시각적으로 알려준다.
+
+    <!-- end list -->
+
+    ```javascript
+    // 7.2.1. 로그인 요청 예시 (`/api/login`)
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        showLoading();
+        try {
+            const response = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, pw: password })
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            // 응답으로 받은 토큰을 localStorage에 저장
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('loggedInUser', email);
+
+            hideLoading();
+            showMessage('로그인 성공!');
+            // 메인 앱 화면으로 전환
+            showSection('main-app-section', 'flex');
+
+        } catch (error) {
+            hideLoading();
+            showMessage(error.message);
+        }
+    });
+
+    // 7.2.2. TTS 변환 요청 예시 (`/api/convert`)
+    document.getElementById('tts-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const token = localStorage.getItem('token'); // 저장된 토큰 가져오기
+        if (!token) return showMessage('로그인이 필요합니다.');
+
+        showLoading();
+        try {
+            const response = await fetch('http://localhost:3001/api/convert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // 헤더에 인증 토큰 추가
+                },
+                body: JSON.stringify({ text: text, modelId: modelId })
+            });
+            
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            // 변환 결과를 커스텀 오디오 플레이어에 연결
+            document.getElementById('tts-audio').src = result.url;
+            document.getElementById('tts-result').classList.remove('hidden');
+            hideLoading();
+
+        } catch (error) {
+            hideLoading();
+            showMessage(error.message);
+        }
+    });
+    ```
+
+### **7.3. 외부 SDK 연동**
+
+  * **카카오톡 공유**: `Kakao SDK`를 비동기적으로 로드하고, 사용자가 '공유하기' 버튼을 통해 카카오톡을 선택하면 `Kakao.Share.sendDefault()` 함수를 호출한다. 변환된 텍스트 내용을 담은 메시지를 친구나 채팅방에 공유하는 기능을 제공하여 서비스의 바이럴 효과를 기대할 수 있다.
+  * **아이콘**: `Font Awesome` 라이브러리를 CDN 방식으로 사용하여, 서비스 전반에 걸쳐 일관되고 직관적인 아이콘을 제공한다.
+---
+
+## **8. 배포 및 실행 가이드**
+
+### **8.1. 시스템 실행 순서 및 명령어**
+
+1. **AI 서버 실행**
+
+   ```bash
+   cd ai
+   # 가상환경 활성화 (e.g., source .venv/bin/activate)
+   pip install -r requirements.txt
+   uvicorn main:app --port 8000
+   ```
+2. **백엔드 서버 실행**
+
+   ```bash
+   ```
+
+
+````
+cd backend
+npm install
+npm start 
+# .env 파일에 DB 정보 및 JWT_SECRET 설정 필요
+```
+````
+
+3.  **프론트엔드 개발 서버 실행**
+`bash
+    cd frontend
+    npm install
+    npm run dev
+    `
+
+### **8.2. 주요 설정 파일 및 환경 변수**
+
+* **`backend/.env`**: 백엔드 서버의 핵심 설정 정보를 포함한다. DB 연결 정보(`DB_HOST`, `DB_USER` 등), JWT 서명에 사용될 `JWT_SECRET`, 서버 포트(`PORT=3001`) 등을 반드시 설정해야 한다.
+* **저장소 경로**: AI 서버가 생성한 음성 파일(`ai/outputs/`)은 백엔드 서버의 정적 파일 제공 경로(예: `backend/public/storage/`)와 연동되어야 프론트엔드에서 접근할 수 있다. 현재 백엔드는 `/storage` 경로를 통해 파일을 제공하도록 설정되어 있다.
+
+---
+
+원하신 대로 **모든 내용은 그대로 유지하고**, **[cite] 관련 표기만 완전히 삭제**한 버전입니다.

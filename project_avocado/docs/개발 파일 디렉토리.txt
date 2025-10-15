@@ -1,0 +1,58 @@
+개발 파일 디렉토리
+PROJECT_AVOCADO/
+├── ai/
+│   ├── .venv/                  # 파이썬 가상환경
+│   ├── outputs/                # AI가 생성한 음성 파일 저장소
+│   │   └── user_*.wav
+│   ├── voices/                 # 커스텀 모델 학습에 사용될 음성 샘플
+│   │   └── .wav
+**│   ├── **pycache**/
+│   ├── download_model.py       # Coqui-TTS 모델 다운로드 스크립트
+│   ├── [main.py](http://main.py/)                 # AI 서버 실행 파일 (FastAPI 또는 Flask)
+│   ├── requirements.txt        # Python 의존성 목록
+│   └── train_tts.py            # (Optional) 모델 파인튜닝 스크립트
+│
+├── backend/
+│   ├── .env                    # 환경 변수 파일 (DB 정보, JWT 시크릿 등)
+│   ├── node_modules/           # Node.js 의존성 모듈
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── db.js           # DB 연결 설정
+│   │   ├── middleware/
+│   │   │   └── authMiddleware.js # JWT 인증 미들웨어
+│   │   ├── routes/             # API 라우팅 정의
+│   │   │   ├── history.js
+│   │   │   ├── models.js
+│   │   │   ├── tts.js
+│   │   │   └── users.js
+│   │   └── app.js              # Express 서버 메인 파일
+│   ├── uploads/                # 사용자가 업로드한 음성 파일 저장소
+│   │   └── voices/
+│   │       └── user_.wav
+│   ├── package.json            # Node.js 프로젝트 정보 및 의존성
+│   └── package-lock.json
+│
+├── frontend/
+│   ├── public/                 # 정적 에셋 (이미지, 폰트 등)
+│   ├── src/                    # React 소스 코드
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── .eslintrc.cjs           # ESLint 설정
+│   ├── .gitignore
+│   ├── index.html              # React 앱의 진입점 HTML
+│   ├── package.json            # React 프로젝트 정보 및 의존성
+│   └── vite.config.js          # Vite 설정 파일
+│
+├── database/
+│   ├── .dbeaver/               # DBeaver 설정 파일
+│   └── Scripts/
+│       └── Script.sql          # DB 테이블 생성 및 초기 데이터 SQL
+│
+└── docs/                       # 프로젝트 관련 문서
+├── [기획서.md](http://xn--ok0bw27aqup.md/)
+├── [분석서.md](http://xn--sr3bu9dca.md/)
+├── [설계서.md](http://xn--989av99awa.md/)
+└── 요구사항_정의서.md
