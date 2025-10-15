@@ -927,15 +927,20 @@
                         recordsHTML += '<div class="space-y-3">';
                         records.forEach(record => {
                             // 모델 이름이 없거나 삭제된 경우 '알 수 없음'으로 표시
-                            const modelName = record.modelName || '내 음성 모델';
+                            const modelName = record.modelName || '기본 모델';
 
                             recordsHTML += `
-                                <div class="p-4 bg-white rounded-lg shadow-sm">
+                                <div class="p-4 bg-white rounded-lg shadow-sm" id="history-item-${record.id}">
                                     <div class="flex justify-between items-center mb-2">
                                         <p class="text-sm text-gray-500">${new Date(record.createdAt).toLocaleString()}</p>
-                                        
-                                        <span class="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded-full">${modelName}</span>
-                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded-full">${modelName}</span>
+                                            
+                                            <button class="delete-history-btn text-gray-400 hover:text-red-500 transition-colors" data-record-id="${record.id}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                            </div>
+                                    </div>
                                     <p class="font-semibold truncate my-1" title="${record.text}">${record.text}</p>
                                     <audio controls src="${record.fileUrl}" class="w-full mt-2"></audio>
                                 </div>`;
@@ -943,6 +948,38 @@
                         recordsHTML += '</div>';
                     }
                     historyContainer.innerHTML = recordsHTML;
+
+                    document.querySelectorAll('.delete-history-btn').forEach(button => {
+                        button.addEventListener('click', async (e) => {
+                            const recordId = e.currentTarget.dataset.recordId;
+                            
+                            if (!confirm('이 기록을 정말로 삭제하시겠습니까?')) {
+                                return;
+                            }
+
+                            const token = localStorage.getItem('token');
+                            showLoading();
+
+                            try {
+                                const response = await fetch(`http://localhost:3001/api/history/${recordId}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+
+                                const result = await response.json();
+                                hideLoading();
+                                showMessage(result.message);
+
+                                if (response.ok) {
+                                    // 성공 시 화면에서 해당 항목 즉시 제거
+                                    document.getElementById(`history-item-${record.id}`).remove();
+                                }
+                            } catch (error) {
+                                hideLoading();
+                                showMessage('삭제 중 오류가 발생했습니다.');
+                            }
+                        });
+                    });
 
                 } catch (error) {
                     historyContainer.innerHTML = `<p>오류: ${error.message}</p>`;
