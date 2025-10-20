@@ -12,6 +12,13 @@ uvicorn main:app --port 8000
 backend server open
 node src/app.js
 
+
+npm install
+npm list vite
+npm install vite --save-dev
+npm run build
+npm run preview
+
 git
 
 # 1. GitHub 내용 먼저 내려받기
@@ -30,3 +37,4 @@ git commit -m "AI 서버 연결 문제 해결 및 전체 기능 안정화"
 # 3. GitHub에 올리기
 git push origin master
 git push --force origin master
+
